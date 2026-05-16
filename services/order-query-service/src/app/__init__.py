@@ -1,0 +1,1 @@
+"""order-query-service package."""

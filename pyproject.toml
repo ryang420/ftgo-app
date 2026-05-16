@@ -1,0 +1,38 @@
+[project]
+name = "ftgo-app"
+version = "0.1.0"
+description = "Python microservices learning implementation of FTGO"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = []
+
+[dependency-groups]
+dev = [
+  "pytest>=8.3.0",
+  "pytest-asyncio>=0.24.0",
+  "ruff>=0.8.0",
+  "mypy>=1.13.0",
+]
+
+[tool.uv.workspace]
+members = [
+  "libs/common",
+  "services/api-gateway",
+  "services/consumer-service",
+  "services/restaurant-service",
+  "services/order-service",
+  "services/kitchen-service",
+  "services/delivery-service",
+  "services/accounting-service",
+  "services/order-query-service",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
