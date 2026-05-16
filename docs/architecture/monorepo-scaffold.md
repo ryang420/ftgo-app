@@ -6,6 +6,7 @@
 - Each service keeps its own schema and migrations
 - Cross-service communication uses HTTP or events, not shared tables
 - Shared library contains technical primitives only
+- New services must follow the DDD dependency direction documented in `docs/architecture/ddd-principles.md`
 
 ## Standard Service Layout
 
@@ -44,3 +45,11 @@ service-name/
 - `common.db`: SQLAlchemy bootstrap
 - `common.observability`: tracing and metrics setup
 - `common.testkit`: reusable test helpers
+
+## DDD Baseline
+
+- `domain` contains pure business objects and ports only
+- `application` contains use cases and depends on domain abstractions
+- `infrastructure` contains ORM models, repository implementations, broker adapters, and mapping code
+- `api` translates HTTP requests into application commands and responses into transport DTOs
+- `order-service` is the current reference implementation

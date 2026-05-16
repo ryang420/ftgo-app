@@ -6,6 +6,8 @@ from app.schemas.consumer import (
     ConsumerCreate,
     ConsumerListResponse,
     ConsumerRead,
+    to_consumer_address_read,
+    to_consumer_read,
 )
 
 __all__ = [
@@ -14,4 +16,6 @@ __all__ = [
     "ConsumerCreate",
     "ConsumerListResponse",
     "ConsumerRead",
+    "to_consumer_address_read",
+    "to_consumer_read",
 ]

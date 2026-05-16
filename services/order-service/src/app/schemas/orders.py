@@ -3,7 +3,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from app.domain.models import OrderStatus
+from app.domain.models import Order, OrderLineItem, OrderStatus
 
 
 class OrderLineItemCreate(BaseModel):
@@ -40,3 +40,25 @@ class OrderRead(BaseModel):
     currency: str
     total_amount: Decimal
     line_items: list[OrderLineItemRead]
+
+
+def to_order_line_item_read(line_item: OrderLineItem) -> OrderLineItemRead:
+    return OrderLineItemRead(
+        id=line_item.id,
+        menu_item_id=line_item.menu_item_id,
+        name=line_item.name,
+        quantity=line_item.quantity,
+        unit_price=line_item.unit_price,
+    )
+
+
+def to_order_read(order: Order) -> OrderRead:
+    return OrderRead(
+        id=order.id,
+        consumer_id=order.consumer_id,
+        restaurant_id=order.restaurant_id,
+        status=order.status,
+        currency=order.currency,
+        total_amount=order.total_amount,
+        line_items=[to_order_line_item_read(item) for item in order.line_items],
+    )

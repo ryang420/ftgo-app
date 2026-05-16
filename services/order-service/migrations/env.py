@@ -4,7 +4,7 @@ from logging.config import fileConfig
 
 from alembic import context
 from app.config import OrderServiceSettings
-from app.domain.models import Order, OrderLineItem  # noqa: F401
+from app.infrastructure.db.models import OrderLineItemRecord, OrderRecord  # noqa: F401
 from common.db import Base
 from sqlalchemy import engine_from_config, pool
 

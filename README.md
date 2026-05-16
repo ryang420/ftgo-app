@@ -7,6 +7,7 @@ study from _Microservice Patterns_.
 
 - Learn service decomposition around a realistic business domain
 - Practice Python microservice engineering with FastAPI and SQLAlchemy
+- Keep service internals aligned to DDD-style boundaries for long-term maintainability
 - Implement core distributed system patterns such as Saga, Outbox, and CQRS
 - Keep the project approachable enough for iterative learning
 
@@ -33,7 +34,7 @@ study from _Microservice Patterns_.
 ## Next Milestones
 
 1. Define API and event contracts for consumer, restaurant, and order flows
-2. Add a shared database bootstrap package and per-service migrations
+2. Migrate every service toward the DDD service template used by `order-service`
 3. Implement the first end-to-end order creation flow
 4. Introduce Outbox publishing and Saga orchestration
 

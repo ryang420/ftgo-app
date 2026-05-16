@@ -4,6 +4,8 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
+from app.domain.models import ConsumerAddress, ConsumerProfile
+
 
 class ConsumerAddressCreate(BaseModel):
     label: str = Field(min_length=1, max_length=50)
@@ -52,3 +54,30 @@ class ConsumerRead(BaseModel):
 
 class ConsumerListResponse(BaseModel):
     items: list[ConsumerRead]
+
+
+def to_consumer_address_read(address: ConsumerAddress) -> ConsumerAddressRead:
+    return ConsumerAddressRead(
+        id=address.id,
+        label=address.label,
+        street1=address.street1,
+        street2=address.street2,
+        city=address.city,
+        state=address.state,
+        postal_code=address.postal_code,
+        country=address.country,
+        created_at=address.created_at,
+    )
+
+
+def to_consumer_read(consumer: ConsumerProfile) -> ConsumerRead:
+    return ConsumerRead(
+        id=consumer.id,
+        email=consumer.email,
+        first_name=consumer.first_name,
+        last_name=consumer.last_name,
+        phone_number=consumer.phone_number,
+        created_at=consumer.created_at,
+        updated_at=consumer.updated_at,
+        addresses=[to_consumer_address_read(address) for address in consumer.addresses],
+    )

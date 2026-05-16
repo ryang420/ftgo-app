@@ -4,6 +4,7 @@ from common.db import Base, build_engine, build_session_factory
 from sqlalchemy.orm import Session
 
 from app.config import get_settings
+from . import models  # noqa: F401
 
 settings = get_settings()
 engine = build_engine(settings.database_url, echo=settings.sql_echo)

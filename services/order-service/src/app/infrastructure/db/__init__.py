@@ -1,9 +1,3 @@
-from common.db import build_engine, build_session_factory
+from app.infrastructure.db.session import Base, SessionLocal, engine, get_db_session, init_db
 
-from app.config import OrderServiceSettings
-
-
-def create_engine_and_session_factory(settings: OrderServiceSettings):
-    engine = build_engine(settings.database_url, echo=settings.sql_echo)
-    session_factory = build_session_factory(engine)
-    return engine, session_factory
+__all__ = ["Base", "SessionLocal", "engine", "get_db_session", "init_db"]

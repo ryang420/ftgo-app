@@ -1,17 +1,21 @@
 from __future__ import annotations
 
+from configparser import ConfigParser
 from logging.config import fileConfig
 
 from alembic import context
 from app.config import RestaurantServiceSettings
-from app.domain.models import MenuItem, Restaurant  # noqa: F401
+from app.infrastructure.db.models import MenuItemRecord, RestaurantRecord  # noqa: F401
 from common.db import Base
 from sqlalchemy import engine_from_config, pool
 
 config = context.config
 
 if config.config_file_name is not None:
-    fileConfig(config.config_file_name)
+    parser = ConfigParser()
+    parser.read(config.config_file_name)
+    if parser.has_section("formatters"):
+        fileConfig(config.config_file_name)
 
 settings = RestaurantServiceSettings()
 config.set_main_option("sqlalchemy.url", settings.database_url)

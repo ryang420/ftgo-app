@@ -1,11 +1,9 @@
+from __future__ import annotations
+
 import enum
 import uuid
+from dataclasses import dataclass, field
 from decimal import Decimal
-
-from common.db import TimestampedModel
-from sqlalchemy import Enum, ForeignKey, Numeric, String
-from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 
 class OrderStatus(str, enum.Enum):
@@ -15,39 +13,49 @@ class OrderStatus(str, enum.Enum):
     CANCELLED = "CANCELLED"
 
 
-class Order(TimestampedModel):
-    __tablename__ = "orders"
+@dataclass(slots=True)
+class OrderLineItem:
+    menu_item_id: uuid.UUID
+    name: str
+    quantity: int
+    unit_price: Decimal
+    id: uuid.UUID = field(default_factory=uuid.uuid4)
 
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    consumer_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False, index=True)
-    restaurant_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False, index=True)
-    status: Mapped[OrderStatus] = mapped_column(
-        Enum(OrderStatus, name="order_status"),
-        default=OrderStatus.PENDING,
-        nullable=False,
-    )
-    currency: Mapped[str] = mapped_column(String(3), default="USD", nullable=False)
-    total_amount: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False)
-
-    line_items: Mapped[list["OrderLineItem"]] = relationship(
-        back_populates="order",
-        cascade="all, delete-orphan",
-    )
+    def subtotal(self) -> Decimal:
+        return self.unit_price * self.quantity
 
 
-class OrderLineItem(TimestampedModel):
-    __tablename__ = "order_line_items"
+@dataclass(slots=True)
+class Order:
+    consumer_id: uuid.UUID
+    restaurant_id: uuid.UUID
+    currency: str
+    line_items: list[OrderLineItem]
+    status: OrderStatus = OrderStatus.PENDING
+    id: uuid.UUID = field(default_factory=uuid.uuid4)
 
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    order_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True),
-        ForeignKey("orders.id", ondelete="CASCADE"),
-        nullable=False,
-        index=True,
-    )
-    menu_item_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
-    name: Mapped[str] = mapped_column(String(255), nullable=False)
-    quantity: Mapped[int] = mapped_column(nullable=False)
-    unit_price: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False)
+    def __post_init__(self) -> None:
+        self.currency = self.currency.upper()
+        if not self.line_items:
+            raise ValueError("An order must contain at least one line item")
 
-    order: Mapped[Order] = relationship(back_populates="line_items")
+    @property
+    def total_amount(self) -> Decimal:
+        return sum((item.subtotal() for item in self.line_items), start=Decimal("0.00"))
+
+    @classmethod
+    def create_pending(
+        cls,
+        *,
+        consumer_id: uuid.UUID,
+        restaurant_id: uuid.UUID,
+        currency: str,
+        line_items: list[OrderLineItem],
+    ) -> Order:
+        return cls(
+            consumer_id=consumer_id,
+            restaurant_id=restaurant_id,
+            currency=currency,
+            line_items=line_items,
+            status=OrderStatus.PENDING,
+        )

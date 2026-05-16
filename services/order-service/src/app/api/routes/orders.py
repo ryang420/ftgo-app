@@ -2,9 +2,10 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
 
+from app.application.commands import CreateOrderCommand, CreateOrderLineItemCommand
 from app.api.dependencies import get_order_service
 from app.application.orders import OrderApplicationService
-from app.schemas.orders import OrderCreate, OrderRead
+from app.schemas.orders import OrderCreate, OrderRead, to_order_read
 
 router = APIRouter(prefix="/orders", tags=["orders"])
 
@@ -13,7 +14,7 @@ router = APIRouter(prefix="/orders", tags=["orders"])
 async def list_orders(
     service: OrderApplicationService = Depends(get_order_service),
 ) -> list[OrderRead]:
-    return [OrderRead.model_validate(order) for order in service.list_orders()]
+    return [to_order_read(order) for order in service.list_orders()]
 
 
 @router.get("/{order_id}", response_model=OrderRead)
@@ -24,7 +25,7 @@ async def get_order(
     order = service.get_order(order_id)
     if order is None:
         raise HTTPException(status_code=404, detail="Order not found")
-    return OrderRead.model_validate(order)
+    return to_order_read(order)
 
 
 @router.post("", response_model=OrderRead, status_code=201)
@@ -32,4 +33,18 @@ async def create_order(
     payload: OrderCreate,
     service: OrderApplicationService = Depends(get_order_service),
 ) -> OrderRead:
-    return OrderRead.model_validate(service.create_order(payload))
+    command = CreateOrderCommand(
+        consumer_id=payload.consumer_id,
+        restaurant_id=payload.restaurant_id,
+        currency=payload.currency,
+        line_items=[
+            CreateOrderLineItemCommand(
+                menu_item_id=item.menu_item_id,
+                name=item.name,
+                quantity=item.quantity,
+                unit_price=item.unit_price,
+            )
+            for item in payload.line_items
+        ],
+    )
+    return to_order_read(service.create_order(command))
