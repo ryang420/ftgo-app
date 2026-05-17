@@ -4,8 +4,8 @@ from configparser import ConfigParser
 from logging.config import fileConfig
 
 from alembic import context
-from app.config import RestaurantServiceSettings
-from app.infrastructure.db.models import MenuItemRecord, RestaurantRecord  # noqa: F401
+from restaurant_service.config import RestaurantServiceSettings
+from restaurant_service.infrastructure.db.models import MenuItemRecord, RestaurantRecord  # noqa: F401
 from common.db import Base
 from sqlalchemy import engine_from_config, pool
 

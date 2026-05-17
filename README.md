@@ -20,6 +20,16 @@ study from _Microservice Patterns_.
 - `docs/`: architecture notes, ADRs, APIs, and diagrams
 - `tests/`: cross-service contract, integration, and end-to-end tests
 
+## Local Development
+
+Use Docker Compose for local infrastructure:
+
+```bash
+make infra-up
+```
+
+See `docs/architecture/local-development.md` for migration and service startup commands.
+
 ## Initial Service Set
 
 - `api-gateway`

@@ -4,8 +4,8 @@ from configparser import ConfigParser
 from logging.config import fileConfig
 
 from alembic import context
-from app.config import ConsumerServiceSettings
-from app.infrastructure.db.models import ConsumerAddressRecord, ConsumerProfileRecord  # noqa: F401
+from consumer_service.config import ConsumerServiceSettings
+from consumer_service.infrastructure.db.models import ConsumerAddressRecord, ConsumerProfileRecord  # noqa: F401
 from common.db import Base
 from sqlalchemy import engine_from_config, pool
 

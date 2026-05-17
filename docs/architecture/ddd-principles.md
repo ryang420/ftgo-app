@@ -23,7 +23,7 @@ This repository uses a DDD-first service template.
 
 ```text
 service-name/
-  src/app/
+  src/<service_package>/
     api/
       dependencies.py
       routes/
@@ -48,5 +48,6 @@ service-name/
 ## Current Reference Implementation
 
 - `order-service` is the reference DDD sample in this repository
+- Each service must use a unique top-level Python package name such as `order_service`
 - New services should copy the dependency direction and repository adapter approach used there
 - Existing services such as `consumer-service` and `restaurant-service` should be migrated toward the same pattern before their domains become more complex
