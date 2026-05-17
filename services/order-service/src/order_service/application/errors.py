@@ -1,3 +1,12 @@
+from uuid import UUID
+
+
+class ConsumerNotFoundError(Exception):
+    def __init__(self, consumer_id: UUID):
+        self.consumer_id = consumer_id
+        super().__init__(f"Consumer {consumer_id} was not found")
+
+
 class RestaurantNotFoundError(Exception):
     def __init__(self, restaurant_id: int):
         self.restaurant_id = restaurant_id

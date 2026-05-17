@@ -4,6 +4,7 @@ from uuid import UUID, uuid4
 import pytest
 
 from order_service.application.commands import CreateOrderCommand, CreateOrderLineItemCommand
+from order_service.application.errors import ConsumerNotFoundError
 from order_service.application.ports import MenuItemSnapshot
 from order_service.application.orders import OrderApplicationService
 from order_service.domain.models import Order, OrderStatus
@@ -38,14 +39,28 @@ class FakeRestaurantCatalog:
         )
 
 
+class FakeConsumerRegistry:
+    def __init__(self, *, existing_consumer_ids: set[UUID] | None = None):
+        self.existing_consumer_ids = existing_consumer_ids or set()
+
+    async def ensure_consumer_exists(self, consumer_id: UUID) -> None:
+        if consumer_id not in self.existing_consumer_ids:
+            raise ConsumerNotFoundError(consumer_id)
+
+
 @pytest.mark.asyncio
 async def test_create_order_uses_restaurant_catalog_menu_snapshot() -> None:
     repository = FakeOrderRepository()
-    service = OrderApplicationService(repository, FakeRestaurantCatalog())
+    consumer_id = uuid4()
+    service = OrderApplicationService(
+        repository,
+        FakeRestaurantCatalog(),
+        FakeConsumerRegistry(existing_consumer_ids={consumer_id}),
+    )
 
     order = await service.create_order(
         CreateOrderCommand(
-            consumer_id=uuid4(),
+            consumer_id=consumer_id,
             restaurant_id=10,
             currency="usd",
             line_items=[CreateOrderLineItemCommand(menu_item_id=20, quantity=2)],
@@ -60,3 +75,21 @@ async def test_create_order_uses_restaurant_catalog_menu_snapshot() -> None:
     assert order.line_items[0].name == "Beef Noodles"
     assert order.line_items[0].unit_price == Decimal("28.00")
     assert repository.orders == [order]
+
+
+@pytest.mark.asyncio
+async def test_create_order_rejects_unknown_consumer() -> None:
+    repository = FakeOrderRepository()
+    service = OrderApplicationService(repository, FakeRestaurantCatalog(), FakeConsumerRegistry())
+
+    with pytest.raises(ConsumerNotFoundError):
+        await service.create_order(
+            CreateOrderCommand(
+                consumer_id=uuid4(),
+                restaurant_id=10,
+                currency="usd",
+                line_items=[CreateOrderLineItemCommand(menu_item_id=20, quantity=2)],
+            )
+        )
+
+    assert repository.orders == []

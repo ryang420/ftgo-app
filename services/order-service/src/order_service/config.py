@@ -12,5 +12,9 @@ class OrderServiceSettings(BaseServiceSettings):
         default="http://localhost:8002",
         validation_alias="FTGO_RESTAURANT_SERVICE_URL",
     )
+    consumer_service_url: str = Field(
+        default="http://localhost:8001",
+        validation_alias="FTGO_CONSUMER_SERVICE_URL",
+    )
     upstream_timeout_seconds: float = Field(default=10.0, validation_alias="FTGO_UPSTREAM_TIMEOUT_SECONDS")
     sql_echo: bool = False

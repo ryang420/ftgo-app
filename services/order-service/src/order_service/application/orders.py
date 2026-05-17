@@ -1,15 +1,21 @@
 from uuid import UUID
 
 from order_service.application.commands import CreateOrderCommand
-from order_service.application.ports import RestaurantCatalog
+from order_service.application.ports import ConsumerRegistry, RestaurantCatalog
 from order_service.domain.models import Order, OrderLineItem
 from order_service.domain.repositories import OrderRepository
 
 
 class OrderApplicationService:
-    def __init__(self, order_repository: OrderRepository, restaurant_catalog: RestaurantCatalog):
+    def __init__(
+        self,
+        order_repository: OrderRepository,
+        restaurant_catalog: RestaurantCatalog,
+        consumer_registry: ConsumerRegistry,
+    ):
         self.order_repository = order_repository
         self.restaurant_catalog = restaurant_catalog
+        self.consumer_registry = consumer_registry
 
     def list_orders(self) -> list[Order]:
         return self.order_repository.list_orders()
@@ -18,6 +24,7 @@ class OrderApplicationService:
         return self.order_repository.get_order(order_id)
 
     async def create_order(self, command: CreateOrderCommand) -> Order:
+        await self.consumer_registry.ensure_consumer_exists(command.consumer_id)
         await self.restaurant_catalog.ensure_restaurant_exists(command.restaurant_id)
         menu_items = [
             await self.restaurant_catalog.get_menu_item(command.restaurant_id, item.menu_item_id)
