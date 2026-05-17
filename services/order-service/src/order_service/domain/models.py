@@ -15,7 +15,7 @@ class OrderStatus(str, enum.Enum):
 
 @dataclass(slots=True)
 class OrderLineItem:
-    menu_item_id: uuid.UUID
+    menu_item_id: int
     name: str
     quantity: int
     unit_price: Decimal
@@ -28,7 +28,7 @@ class OrderLineItem:
 @dataclass(slots=True)
 class Order:
     consumer_id: uuid.UUID
-    restaurant_id: uuid.UUID
+    restaurant_id: int
     currency: str
     line_items: list[OrderLineItem]
     status: OrderStatus = OrderStatus.PENDING
@@ -48,7 +48,7 @@ class Order:
         cls,
         *,
         consumer_id: uuid.UUID,
-        restaurant_id: uuid.UUID,
+        restaurant_id: int,
         currency: str,
         line_items: list[OrderLineItem],
     ) -> Order:

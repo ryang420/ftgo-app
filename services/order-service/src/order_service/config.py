@@ -8,4 +8,9 @@ class OrderServiceSettings(BaseServiceSettings):
         default="postgresql+psycopg://ftgo:ftgo@localhost:15432/order_db",
         validation_alias="FTGO_ORDER_DATABASE_URL",
     )
+    restaurant_service_url: str = Field(
+        default="http://localhost:8002",
+        validation_alias="FTGO_RESTAURANT_SERVICE_URL",
+    )
+    upstream_timeout_seconds: float = Field(default=10.0, validation_alias="FTGO_UPSTREAM_TIMEOUT_SECONDS")
     sql_echo: bool = False

@@ -30,6 +30,8 @@ make infra-up
 
 See `docs/architecture/local-development.md` for migration and service startup commands.
 
+The first implemented business flow is documented in `docs/use-cases/place-order.md`.
+
 ## Initial Service Set
 
 - `api-gateway`

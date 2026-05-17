@@ -3,6 +3,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException
 
 from order_service.application.commands import CreateOrderCommand, CreateOrderLineItemCommand
+from order_service.application.errors import MenuItemNotFoundError, RestaurantNotFoundError
 from order_service.api.dependencies import get_order_service
 from order_service.application.orders import OrderApplicationService
 from order_service.schemas.orders import OrderCreate, OrderRead, to_order_read
@@ -40,11 +41,14 @@ async def create_order(
         line_items=[
             CreateOrderLineItemCommand(
                 menu_item_id=item.menu_item_id,
-                name=item.name,
                 quantity=item.quantity,
-                unit_price=item.unit_price,
             )
             for item in payload.line_items
         ],
     )
-    return to_order_read(service.create_order(command))
+    try:
+        return to_order_read(await service.create_order(command))
+    except RestaurantNotFoundError as exc:
+        raise HTTPException(status_code=404, detail="Restaurant not found") from exc
+    except MenuItemNotFoundError as exc:
+        raise HTTPException(status_code=404, detail="Menu item not found") from exc
