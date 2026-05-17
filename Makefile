@@ -1,11 +1,13 @@
 COMPOSE_FILE := deploy/docker-compose/docker-compose.yml
 
-.PHONY: help sync infra-up infra-down infra-reset migrate migrate-consumer migrate-restaurant migrate-order run-api-gateway run-consumer run-restaurant run-order
+.PHONY: help sync infra-up infra-down infra-reset migrate migrate-consumer migrate-restaurant migrate-order dev-up dev-down run-api-gateway run-consumer run-restaurant run-order
 
 help:
 	@echo "FTGO local development commands"
 	@echo ""
 	@echo "  make sync              Sync all workspace packages"
+	@echo "  make dev-up            Start infra, run migrations, and start core services"
+	@echo "  make dev-down          Stop core services and Docker infrastructure"
 	@echo "  make infra-up          Start Docker Postgres and RabbitMQ"
 	@echo "  make infra-down        Stop Docker infrastructure"
 	@echo "  make infra-reset       Stop infrastructure and remove volumes"
@@ -37,6 +39,12 @@ migrate-restaurant:
 
 migrate-order:
 	cd services/order-service && uv run --package order-service alembic -c alembic.ini upgrade head
+
+dev-up:
+	./scripts/dev-up.sh
+
+dev-down:
+	./scripts/dev-down.sh
 
 run-consumer:
 	uv run uvicorn consumer_service.main:app --port 8001

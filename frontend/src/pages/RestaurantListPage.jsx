@@ -1,7 +1,40 @@
+import { useEffect, useState } from "react";
 import RestaurantCard from "../components/RestaurantCard.jsx";
-import { featuredRestaurants } from "../data/restaurants.js";
+import { getRestaurants } from "../lib/api.js";
 
 function RestaurantListPage() {
+  const [restaurants, setRestaurants] = useState([]);
+  const [status, setStatus] = useState("loading");
+  const [errorMessage, setErrorMessage] = useState("");
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    async function loadRestaurants() {
+      setStatus("loading");
+      setErrorMessage("");
+
+      try {
+        const data = await getRestaurants({ signal: controller.signal });
+        setRestaurants(data);
+        setStatus("success");
+      } catch (error) {
+        if (error.name === "AbortError") {
+          return;
+        }
+
+        setErrorMessage(
+          "Restaurant API is not reachable yet. Start api-gateway and restaurant-service, then refresh.",
+        );
+        setStatus("error");
+      }
+    }
+
+    loadRestaurants();
+
+    return () => controller.abort();
+  }, []);
+
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(251,146,60,0.24),_transparent_24%),linear-gradient(135deg,_#111111_0%,_#1c1917_52%,_#292524_100%)] px-5 py-6 text-sand sm:px-8 sm:py-8 lg:px-10">
       <div className="mx-auto max-w-7xl">
@@ -57,17 +90,46 @@ function RestaurantListPage() {
               </h2>
             </div>
             <p className="max-w-xl text-sm leading-7 text-stone-300">
-              Temporary mock data is wired in for now so we can shape the page and
-              component model before swapping the source to the real restaurant
-              service.
+              The cards below now read from the live backend route exposed through the
+              API gateway. This gives us a real first slice for restaurant discovery.
             </p>
           </div>
 
-          <div className="mt-6 grid gap-5 lg:grid-cols-3">
-            {featuredRestaurants.map((restaurant) => (
-              <RestaurantCard key={restaurant.id} restaurant={restaurant} />
-            ))}
-          </div>
+          {status === "loading" ? (
+            <div className="mt-6 grid gap-5 lg:grid-cols-3">
+              {Array.from({ length: 3 }).map((_, index) => (
+                <div
+                  key={index}
+                  className="h-72 animate-pulse rounded-[1.75rem] border border-white/10 bg-white/[0.045]"
+                />
+              ))}
+            </div>
+          ) : null}
+
+          {status === "error" ? (
+            <div className="mt-6 rounded-[1.75rem] border border-rose-300/20 bg-rose-500/10 p-6 text-sm leading-7 text-rose-100">
+              <p className="font-medium">Unable to load restaurants.</p>
+              <p className="mt-2">{errorMessage}</p>
+              <p className="mt-2 text-rose-100/80">
+                Expected gateway route: <code>http://localhost:8000/restaurants</code>
+              </p>
+            </div>
+          ) : null}
+
+          {status === "success" && restaurants.length === 0 ? (
+            <div className="mt-6 rounded-[1.75rem] border border-white/10 bg-white/[0.045] p-6 text-sm leading-7 text-stone-200">
+              No restaurants have been created yet. Seed a few records in
+              `restaurant-service` and this page will populate automatically.
+            </div>
+          ) : null}
+
+          {status === "success" && restaurants.length > 0 ? (
+            <div className="mt-6 grid gap-5 lg:grid-cols-3">
+              {restaurants.map((restaurant) => (
+                <RestaurantCard key={restaurant.id} restaurant={restaurant} />
+              ))}
+            </div>
+          ) : null}
         </section>
       </div>
     </main>

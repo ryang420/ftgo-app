@@ -30,6 +30,23 @@ service's `migrations/` folder and `src/` package path correctly.
 
 ## Start Core Services
 
+To start the full local stack in one command:
+
+```bash
+make dev-up
+```
+
+This starts Docker infrastructure, runs migrations, starts the core HTTP services
+in the background, and writes logs to `.runtime/logs/`.
+
+To stop the full local stack:
+
+```bash
+make dev-down
+```
+
+For manual service-by-service startup:
+
 ```bash
 make run-consumer
 make run-restaurant
