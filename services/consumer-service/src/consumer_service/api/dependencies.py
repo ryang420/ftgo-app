@@ -1,3 +1,5 @@
+from typing import Annotated
+
 from fastapi import Depends
 from sqlalchemy.orm import Session
 
@@ -7,6 +9,6 @@ from consumer_service.infrastructure.db.repositories import SqlAlchemyConsumerRe
 
 
 def get_consumer_service(
-    session: Session = Depends(get_db_session),
+    session: Annotated[Session, Depends(get_db_session)],
 ) -> ConsumerApplicationService:
     return ConsumerApplicationService(SqlAlchemyConsumerRepository(session))

@@ -2,11 +2,11 @@ from decimal import Decimal
 from uuid import UUID, uuid4
 
 import pytest
-
 from order_service.application.commands import CreateOrderCommand, CreateOrderLineItemCommand
 from order_service.application.errors import ConsumerNotFoundError
-from order_service.application.ports import MenuItemSnapshot
 from order_service.application.orders import OrderApplicationService
+from order_service.application.outbox import OutboxEvent
+from order_service.application.ports import MenuItemSnapshot
 from order_service.domain.models import Order, OrderStatus
 
 
@@ -48,14 +48,34 @@ class FakeConsumerRegistry:
             raise ConsumerNotFoundError(consumer_id)
 
 
+class FakeOutboxWriter:
+    def __init__(self):
+        self.events: list[OutboxEvent] = []
+
+    def add(self, event: OutboxEvent) -> None:
+        self.events.append(event)
+
+
+class FakeUnitOfWork:
+    def __init__(self):
+        self.committed = False
+
+    def commit(self) -> None:
+        self.committed = True
+
+
 @pytest.mark.asyncio
 async def test_create_order_uses_restaurant_catalog_menu_snapshot() -> None:
     repository = FakeOrderRepository()
     consumer_id = uuid4()
+    outbox = FakeOutboxWriter()
+    unit_of_work = FakeUnitOfWork()
     service = OrderApplicationService(
         repository,
         FakeRestaurantCatalog(),
         FakeConsumerRegistry(existing_consumer_ids={consumer_id}),
+        outbox,
+        unit_of_work,
     )
 
     order = await service.create_order(
@@ -75,12 +95,30 @@ async def test_create_order_uses_restaurant_catalog_menu_snapshot() -> None:
     assert order.line_items[0].name == "Beef Noodles"
     assert order.line_items[0].unit_price == Decimal("28.00")
     assert repository.orders == [order]
+    assert unit_of_work.committed is True
+    assert len(outbox.events) == 1
+    assert outbox.events[0].aggregate_type == "Order"
+    assert outbox.events[0].aggregate_id == str(order.id)
+    assert outbox.events[0].event_type == "OrderCreated"
+    assert outbox.events[0].payload["order_id"] == str(order.id)
+    assert outbox.events[0].payload["consumer_id"] == str(consumer_id)
+    assert outbox.events[0].payload["restaurant_id"] == 10
+    assert outbox.events[0].payload["total_amount"] == "56.00"
+    assert outbox.events[0].payload["line_items"][0]["name"] == "Beef Noodles"
 
 
 @pytest.mark.asyncio
 async def test_create_order_rejects_unknown_consumer() -> None:
     repository = FakeOrderRepository()
-    service = OrderApplicationService(repository, FakeRestaurantCatalog(), FakeConsumerRegistry())
+    outbox = FakeOutboxWriter()
+    unit_of_work = FakeUnitOfWork()
+    service = OrderApplicationService(
+        repository,
+        FakeRestaurantCatalog(),
+        FakeConsumerRegistry(),
+        outbox,
+        unit_of_work,
+    )
 
     with pytest.raises(ConsumerNotFoundError):
         await service.create_order(
@@ -93,3 +131,5 @@ async def test_create_order_rejects_unknown_consumer() -> None:
         )
 
     assert repository.orders == []
+    assert outbox.events == []
+    assert unit_of_work.committed is False

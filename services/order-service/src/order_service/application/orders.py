@@ -1,7 +1,13 @@
 from uuid import UUID
 
 from order_service.application.commands import CreateOrderCommand
-from order_service.application.ports import ConsumerRegistry, RestaurantCatalog
+from order_service.application.outbox import order_created_event
+from order_service.application.ports import (
+    ConsumerRegistry,
+    OutboxWriter,
+    RestaurantCatalog,
+    UnitOfWork,
+)
 from order_service.domain.models import Order, OrderLineItem
 from order_service.domain.repositories import OrderRepository
 
@@ -12,10 +18,14 @@ class OrderApplicationService:
         order_repository: OrderRepository,
         restaurant_catalog: RestaurantCatalog,
         consumer_registry: ConsumerRegistry,
+        outbox: OutboxWriter,
+        unit_of_work: UnitOfWork,
     ):
         self.order_repository = order_repository
         self.restaurant_catalog = restaurant_catalog
         self.consumer_registry = consumer_registry
+        self.outbox = outbox
+        self.unit_of_work = unit_of_work
 
     def list_orders(self) -> list[Order]:
         return self.order_repository.list_orders()
@@ -44,4 +54,7 @@ class OrderApplicationService:
                 for item, menu_item in zip(command.line_items, menu_items, strict=True)
             ],
         )
-        return self.order_repository.add(order)
+        saved_order = self.order_repository.add(order)
+        self.outbox.add(order_created_event(saved_order))
+        self.unit_of_work.commit()
+        return saved_order

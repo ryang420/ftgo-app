@@ -1,3 +1,5 @@
+from typing import Annotated
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.exc import IntegrityError
 
@@ -19,7 +21,7 @@ router = APIRouter(prefix="/restaurants", tags=["restaurants"])
 
 @router.get("", response_model=list[RestaurantRead])
 def read_restaurants(
-    service: RestaurantApplicationService = Depends(get_restaurant_service),
+    service: Annotated[RestaurantApplicationService, Depends(get_restaurant_service)],
 ) -> list[RestaurantRead]:
     return [to_restaurant_read(restaurant) for restaurant in service.list_restaurants()]
 
@@ -27,7 +29,7 @@ def read_restaurants(
 @router.post("", response_model=RestaurantRead, status_code=status.HTTP_201_CREATED)
 def create_restaurant_endpoint(
     payload: RestaurantCreate,
-    service: RestaurantApplicationService = Depends(get_restaurant_service),
+    service: Annotated[RestaurantApplicationService, Depends(get_restaurant_service)],
 ) -> RestaurantRead:
     command = to_create_restaurant_command(payload)
     try:
@@ -42,7 +44,7 @@ def create_restaurant_endpoint(
 @router.get("/{restaurant_id}", response_model=RestaurantRead)
 def read_restaurant(
     restaurant_id: int,
-    service: RestaurantApplicationService = Depends(get_restaurant_service),
+    service: Annotated[RestaurantApplicationService, Depends(get_restaurant_service)],
 ) -> RestaurantRead:
     restaurant = service.get_restaurant(restaurant_id)
     if restaurant is None:
@@ -53,7 +55,7 @@ def read_restaurant(
 @router.get("/{restaurant_id}/menu-items", response_model=list[MenuItemRead], tags=["menu-items"])
 def read_menu_items(
     restaurant_id: int,
-    service: RestaurantApplicationService = Depends(get_restaurant_service),
+    service: Annotated[RestaurantApplicationService, Depends(get_restaurant_service)],
 ) -> list[MenuItemRead]:
     restaurant = service.get_restaurant(restaurant_id)
     if restaurant is None:
@@ -70,7 +72,7 @@ def read_menu_items(
 def create_menu_item_endpoint(
     restaurant_id: int,
     payload: MenuItemCreate,
-    service: RestaurantApplicationService = Depends(get_restaurant_service),
+    service: Annotated[RestaurantApplicationService, Depends(get_restaurant_service)],
 ) -> MenuItemRead:
     restaurant = service.get_restaurant(restaurant_id)
     if restaurant is None:
@@ -87,7 +89,7 @@ def create_menu_item_endpoint(
 def read_menu_item(
     restaurant_id: int,
     menu_item_id: int,
-    service: RestaurantApplicationService = Depends(get_restaurant_service),
+    service: Annotated[RestaurantApplicationService, Depends(get_restaurant_service)],
 ) -> MenuItemRead:
     menu_item = service.get_menu_item(restaurant_id, menu_item_id)
     if menu_item is None:

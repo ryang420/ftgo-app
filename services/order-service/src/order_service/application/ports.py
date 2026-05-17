@@ -3,6 +3,8 @@ from decimal import Decimal
 from typing import Protocol
 from uuid import UUID
 
+from order_service.application.outbox import OutboxEvent
+
 
 @dataclass(slots=True)
 class MenuItemSnapshot:
@@ -22,4 +24,14 @@ class RestaurantCatalog(Protocol):
 
 class ConsumerRegistry(Protocol):
     async def ensure_consumer_exists(self, consumer_id: UUID) -> None:
+        ...
+
+
+class OutboxWriter(Protocol):
+    def add(self, event: OutboxEvent) -> None:
+        ...
+
+
+class UnitOfWork(Protocol):
+    def commit(self) -> None:
         ...

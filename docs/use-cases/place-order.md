@@ -10,6 +10,7 @@ This is the first end-to-end FTGO use case.
 4. `order-service` validates the consumer with `consumer-service`.
 5. `order-service` validates the restaurant and menu item with `restaurant-service`.
 6. `order-service` stores a pending order using the menu snapshot returned by `restaurant-service`.
+7. `order-service` records an `OrderCreated` event in its transactional outbox in the same database transaction.
 
 ## Example
 
@@ -77,3 +78,5 @@ curl -s -X POST http://localhost:8000/orders \
 The order response includes the menu item name and price from `restaurant-service`.
 If the consumer, restaurant, or menu item does not exist, `order-service` rejects
 the order instead of storing an invalid reference.
+When the order is accepted, the order row and its `OrderCreated` outbox message
+are committed together so downstream services can consume the event later.
