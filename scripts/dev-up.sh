@@ -70,10 +70,30 @@ start_service() {
   local log_file="$LOG_DIR/${name}.log"
 
   echo "Starting $name on port $port..."
-  uv run uvicorn "$app" --host 0.0.0.0 --port "$port" >"$log_file" 2>&1 &
+  nohup uv run uvicorn "$app" --host 0.0.0.0 --port "$port" >"$log_file" 2>&1 &
   local pid=$!
+  disown "$pid" 2>/dev/null || true
   echo "$name:$pid:$port:$log_file" >> "$PID_FILE"
   wait_for_health "$name" "$pid" "$port" "$log_file"
+}
+
+start_worker() {
+  local name="$1"
+  local log_file="$LOG_DIR/${name}.log"
+
+  echo "Starting $name..."
+  nohup uv run --package order-service python services/order-service/src/order_service/relay.py >"$log_file" 2>&1 &
+  local pid=$!
+  disown "$pid" 2>/dev/null || true
+  echo "$name:$pid:-:$log_file" >> "$PID_FILE"
+
+  sleep 2
+  if ! kill -0 "$pid" 2>/dev/null; then
+    echo "$name exited during startup. Last log lines:"
+    tail -n 40 "$log_file" || true
+    return 1
+  fi
+  echo "$name is running with pid $pid"
 }
 
 trap 'echo "Startup failed; stopping services started by this script."; stop_started_services' ERR
@@ -88,11 +108,13 @@ start_service "consumer-service" "consumer_service.main:app" "8001"
 start_service "restaurant-service" "restaurant_service.main:app" "8002"
 start_service "order-service" "order_service.main:app" "8003"
 start_service "api-gateway" "api_gateway.main:app" "8000"
+start_worker "order-outbox-relay"
 
 trap - ERR
 
 echo ""
 echo "FTGO local stack is running."
 echo "API gateway: http://localhost:8000"
+echo "Order outbox relay: running in background"
 echo "Logs: $LOG_DIR"
 echo "Stop everything with: make dev-down"

@@ -2,11 +2,10 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from datetime import datetime, timezone
-from typing import Any
+from datetime import UTC, datetime
 
 from sqlalchemy import create_engine, select
-from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.orm import sessionmaker
 
 from common.messaging.publisher import MessagePublisher
 from common.outbox.models import OutboxMessageRecord
@@ -42,8 +41,8 @@ class OutboxRelay:
         self._running = False
 
     async def run(self) -> None:
-        await self.publisher.connect()
         self._running = True
+        await self._connect_with_retry()
         logger.info("Outbox relay started")
 
         try:
@@ -61,6 +60,18 @@ class OutboxRelay:
 
     def stop(self) -> None:
         self._running = False
+
+    async def _connect_with_retry(self) -> None:
+        while self._running:
+            try:
+                await self.publisher.connect()
+                return
+            except Exception:
+                logger.exception(
+                    "Failed to connect outbox relay publisher, retrying after %.1f seconds",
+                    self.poll_interval,
+                )
+                await asyncio.sleep(self.poll_interval)
 
     async def _process_batch(self) -> int:
         session = self.session_factory()
@@ -109,7 +120,7 @@ class OutboxRelay:
                     break
 
             # 3. Mark successfully published rows inside the same DB tx.
-            now = datetime.now(timezone.utc)
+            now = datetime.now(UTC)
             for msg in successfully_published:
                 msg.published_at = now
 

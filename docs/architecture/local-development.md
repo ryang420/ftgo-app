@@ -37,7 +37,8 @@ make dev-up
 ```
 
 This starts Docker infrastructure, runs migrations, starts the core HTTP services
-in the background, and writes logs to `.runtime/logs/`.
+and `order-service` outbox relay in the background, and writes logs to
+`.runtime/logs/`.
 
 To stop the full local stack:
 

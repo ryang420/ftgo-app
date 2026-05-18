@@ -4,12 +4,13 @@ import signal
 import sys
 
 from common.outbox.relay import OutboxRelay
+
 from order_service.config import OrderServiceSettings
 
 settings = OrderServiceSettings()
 relay = OutboxRelay(
     database_url=settings.database_url,
-    amqp_url="amqp://ftgo:ftgo@localhost:5672/",
+    amqp_url=settings.amqp_url,
     poll_interval_seconds=3.0,
 )
 
