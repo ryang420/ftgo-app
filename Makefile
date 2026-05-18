@@ -59,5 +59,8 @@ run-restaurant:
 run-order:
 	uv run uvicorn order_service.main:app --port 8003
 
+run-order-relay:
+	uv run --package order-service python services/order-service/src/order_service/relay.py
+
 run-api-gateway:
 	uv run uvicorn api_gateway.main:app --port 8000
