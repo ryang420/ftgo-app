@@ -1,7 +1,7 @@
 """add delivery_address to orders
 
 Revision ID: 0004
-Revises: 0003
+Revises: 0003_order_outbox
 Create Date: 2025-05-18 00:00:00.000000
 
 """
@@ -13,7 +13,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision: str = "0004"
-down_revision: Union[str, None] = "0003"
+down_revision: Union[str, None] = "0003_order_outbox"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
