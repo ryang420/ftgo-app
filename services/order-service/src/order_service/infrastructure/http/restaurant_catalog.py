@@ -30,9 +30,12 @@ class HttpRestaurantCatalog(RestaurantCatalog):
         response.raise_for_status()
 
         payload = response.json()
-        return MenuItemSnapshot(
+        snapshot = MenuItemSnapshot(
             id=payload["id"],
             restaurant_id=payload["restaurant_id"],
             name=payload["name"],
             price=Decimal(str(payload["price"])),
         )
+        if snapshot.restaurant_id != restaurant_id:
+            raise MenuItemNotFoundError(restaurant_id, menu_item_id)
+        return snapshot

@@ -30,6 +30,7 @@ class Order:
     consumer_id: uuid.UUID
     restaurant_id: int
     currency: str
+    delivery_address: str
     line_items: list[OrderLineItem]
     status: OrderStatus = OrderStatus.PENDING
     id: uuid.UUID = field(default_factory=uuid.uuid4)
@@ -38,6 +39,8 @@ class Order:
         self.currency = self.currency.upper()
         if not self.line_items:
             raise ValueError("An order must contain at least one line item")
+        if not self.delivery_address or not self.delivery_address.strip():
+            raise ValueError("Delivery address is required")
 
     @property
     def total_amount(self) -> Decimal:
@@ -50,12 +53,14 @@ class Order:
         consumer_id: uuid.UUID,
         restaurant_id: int,
         currency: str,
+        delivery_address: str,
         line_items: list[OrderLineItem],
     ) -> Order:
         return cls(
             consumer_id=consumer_id,
             restaurant_id=restaurant_id,
             currency=currency,
+            delivery_address=delivery_address,
             line_items=line_items,
             status=OrderStatus.PENDING,
         )

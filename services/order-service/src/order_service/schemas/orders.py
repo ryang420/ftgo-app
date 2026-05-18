@@ -15,6 +15,7 @@ class OrderCreate(BaseModel):
     consumer_id: UUID
     restaurant_id: int
     currency: str = Field(default="USD", min_length=3, max_length=3)
+    delivery_address: str = Field(min_length=1, max_length=500)
     line_items: list[OrderLineItemCreate] = Field(min_length=1)
 
 
@@ -37,6 +38,7 @@ class OrderRead(BaseModel):
     status: OrderStatus
     currency: str
     total_amount: Decimal
+    delivery_address: str
     line_items: list[OrderLineItemRead]
 
 
@@ -58,5 +60,6 @@ def to_order_read(order: Order) -> OrderRead:
         status=order.status,
         currency=order.currency,
         total_amount=order.total_amount,
+        delivery_address=order.delivery_address,
         line_items=[to_order_line_item_read(item) for item in order.line_items],
     )

@@ -61,6 +61,7 @@ order_response="$(
     \"consumer_id\": \"${consumer_id}\",
     \"restaurant_id\": ${restaurant_id},
     \"currency\": \"USD\",
+    \"delivery_address\": \"123 Main St, Shanghai, 200000\",
     \"line_items\": [{
       \"menu_item_id\": ${menu_item_id},
       \"quantity\": 2

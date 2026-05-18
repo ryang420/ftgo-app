@@ -3,7 +3,11 @@ from uuid import UUID, uuid4
 
 import pytest
 from order_service.application.commands import CreateOrderCommand, CreateOrderLineItemCommand
-from order_service.application.errors import ConsumerNotFoundError
+from order_service.application.errors import (
+    ConsumerNotFoundError,
+    MenuItemNotFoundError,
+    RestaurantNotFoundError,
+)
 from order_service.application.orders import OrderApplicationService
 from order_service.application.outbox import OutboxEvent
 from order_service.application.ports import MenuItemSnapshot
@@ -26,17 +30,34 @@ class FakeOrderRepository:
 
 
 class FakeRestaurantCatalog:
+    def __init__(self, *, mismatch_menu_item: bool = False):
+        self.mismatch_menu_item = mismatch_menu_item
+
     async def ensure_restaurant_exists(self, restaurant_id: int) -> None:
-        assert restaurant_id == 10
+        if restaurant_id != 10:
+            raise RestaurantNotFoundError(restaurant_id)
 
     async def get_menu_item(self, restaurant_id: int, menu_item_id: int) -> MenuItemSnapshot:
-        assert restaurant_id == 10
-        return MenuItemSnapshot(
-            id=menu_item_id,
-            restaurant_id=restaurant_id,
-            name="Beef Noodles",
-            price=Decimal("28.00"),
-        )
+        if restaurant_id != 10:
+            raise MenuItemNotFoundError(restaurant_id, menu_item_id)
+        if self.mismatch_menu_item:
+            # Return a menu item that belongs to a different restaurant
+            snapshot = MenuItemSnapshot(
+                id=menu_item_id,
+                restaurant_id=999,
+                name="Beef Noodles",
+                price=Decimal("28.00"),
+            )
+        else:
+            snapshot = MenuItemSnapshot(
+                id=menu_item_id,
+                restaurant_id=restaurant_id,
+                name="Beef Noodles",
+                price=Decimal("28.00"),
+            )
+        if snapshot.restaurant_id != restaurant_id:
+            raise MenuItemNotFoundError(restaurant_id, menu_item_id)
+        return snapshot
 
 
 class FakeConsumerRegistry:
@@ -64,6 +85,20 @@ class FakeUnitOfWork:
         self.committed = True
 
 
+def _build_command(
+    consumer_id: UUID,
+    restaurant_id: int = 10,
+    delivery_address: str = "123 Main St",
+) -> CreateOrderCommand:
+    return CreateOrderCommand(
+        consumer_id=consumer_id,
+        restaurant_id=restaurant_id,
+        currency="usd",
+        delivery_address=delivery_address,
+        line_items=[CreateOrderLineItemCommand(menu_item_id=20, quantity=2)],
+    )
+
+
 @pytest.mark.asyncio
 async def test_create_order_uses_restaurant_catalog_menu_snapshot() -> None:
     repository = FakeOrderRepository()
@@ -78,18 +113,12 @@ async def test_create_order_uses_restaurant_catalog_menu_snapshot() -> None:
         unit_of_work,
     )
 
-    order = await service.create_order(
-        CreateOrderCommand(
-            consumer_id=consumer_id,
-            restaurant_id=10,
-            currency="usd",
-            line_items=[CreateOrderLineItemCommand(menu_item_id=20, quantity=2)],
-        )
-    )
+    order = await service.create_order(_build_command(consumer_id))
 
     assert order.status == OrderStatus.PENDING
     assert order.restaurant_id == 10
     assert order.currency == "USD"
+    assert order.delivery_address == "123 Main St"
     assert order.total_amount == Decimal("56.00")
     assert order.line_items[0].menu_item_id == 20
     assert order.line_items[0].name == "Beef Noodles"
@@ -104,6 +133,7 @@ async def test_create_order_uses_restaurant_catalog_menu_snapshot() -> None:
     assert outbox.events[0].payload["consumer_id"] == str(consumer_id)
     assert outbox.events[0].payload["restaurant_id"] == 10
     assert outbox.events[0].payload["total_amount"] == "56.00"
+    assert outbox.events[0].payload["delivery_address"] == "123 Main St"
     assert outbox.events[0].payload["line_items"][0]["name"] == "Beef Noodles"
 
 
@@ -121,13 +151,74 @@ async def test_create_order_rejects_unknown_consumer() -> None:
     )
 
     with pytest.raises(ConsumerNotFoundError):
+        await service.create_order(_build_command(uuid4()))
+
+    assert repository.orders == []
+    assert outbox.events == []
+    assert unit_of_work.committed is False
+
+
+@pytest.mark.asyncio
+async def test_create_order_rejects_unknown_restaurant() -> None:
+    repository = FakeOrderRepository()
+    outbox = FakeOutboxWriter()
+    unit_of_work = FakeUnitOfWork()
+    consumer_id = uuid4()
+    service = OrderApplicationService(
+        repository,
+        FakeRestaurantCatalog(),
+        FakeConsumerRegistry(existing_consumer_ids={consumer_id}),
+        outbox,
+        unit_of_work,
+    )
+
+    with pytest.raises(RestaurantNotFoundError):
+        await service.create_order(_build_command(consumer_id, restaurant_id=99))
+
+    assert repository.orders == []
+    assert outbox.events == []
+    assert unit_of_work.committed is False
+
+
+@pytest.mark.asyncio
+async def test_create_order_rejects_menu_item_from_wrong_restaurant() -> None:
+    repository = FakeOrderRepository()
+    consumer_id = uuid4()
+    outbox = FakeOutboxWriter()
+    unit_of_work = FakeUnitOfWork()
+    service = OrderApplicationService(
+        repository,
+        FakeRestaurantCatalog(mismatch_menu_item=True),
+        FakeConsumerRegistry(existing_consumer_ids={consumer_id}),
+        outbox,
+        unit_of_work,
+    )
+
+    with pytest.raises(MenuItemNotFoundError):
+        await service.create_order(_build_command(consumer_id))
+
+    assert repository.orders == []
+    assert outbox.events == []
+    assert unit_of_work.committed is False
+
+
+@pytest.mark.asyncio
+async def test_create_order_rejects_empty_delivery_address() -> None:
+    repository = FakeOrderRepository()
+    consumer_id = uuid4()
+    outbox = FakeOutboxWriter()
+    unit_of_work = FakeUnitOfWork()
+    service = OrderApplicationService(
+        repository,
+        FakeRestaurantCatalog(),
+        FakeConsumerRegistry(existing_consumer_ids={consumer_id}),
+        outbox,
+        unit_of_work,
+    )
+
+    with pytest.raises(ValueError, match="Delivery address is required"):
         await service.create_order(
-            CreateOrderCommand(
-                consumer_id=uuid4(),
-                restaurant_id=10,
-                currency="usd",
-                line_items=[CreateOrderLineItemCommand(menu_item_id=20, quantity=2)],
-            )
+            _build_command(consumer_id, delivery_address="   ")
         )
 
     assert repository.orders == []

@@ -24,6 +24,7 @@ def order_created_event(order: Order) -> OutboxEvent:
             "status": order.status.value,
             "currency": order.currency,
             "total_amount": str(order.total_amount),
+            "delivery_address": order.delivery_address,
             "line_items": [
                 {
                     "id": str(item.id),

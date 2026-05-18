@@ -64,10 +64,12 @@ Create an order:
 ```bash
 curl -s -X POST http://localhost:8000/orders \
   -H 'content-type: application/json' \
+  -H 'Idempotency-Key: order-alice-001' \
   -d '{
     "consumer_id": "<consumer-id>",
     "restaurant_id": 1,
     "currency": "USD",
+    "delivery_address": "123 Main St, Shanghai, 200000",
     "line_items": [{
       "menu_item_id": 1,
       "quantity": 2
@@ -80,3 +82,8 @@ If the consumer, restaurant, or menu item does not exist, `order-service` reject
 the order instead of storing an invalid reference.
 When the order is accepted, the order row and its `OrderCreated` outbox message
 are committed together so downstream services can consume the event later.
+
+### Idempotency
+
+Pass `Idempotency-Key` header to avoid duplicate orders on network retries.
+The key is scoped to the consumer and cached in-memory for 1 hour.

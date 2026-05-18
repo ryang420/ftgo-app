@@ -44,6 +44,7 @@ class OrderApplicationService:
             consumer_id=command.consumer_id,
             restaurant_id=command.restaurant_id,
             currency=command.currency,
+            delivery_address=command.delivery_address,
             line_items=[
                 OrderLineItem(
                     menu_item_id=menu_item.id,

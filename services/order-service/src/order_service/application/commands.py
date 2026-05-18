@@ -13,4 +13,5 @@ class CreateOrderCommand:
     consumer_id: UUID
     restaurant_id: int
     currency: str
+    delivery_address: str
     line_items: list[CreateOrderLineItemCommand]

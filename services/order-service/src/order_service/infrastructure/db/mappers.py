@@ -9,6 +9,7 @@ def to_domain_order(record: OrderRecord) -> Order:
         restaurant_id=record.restaurant_id,
         status=record.status,
         currency=record.currency,
+        delivery_address=record.delivery_address,
         line_items=[
             OrderLineItem(
                 id=item.id,
@@ -30,6 +31,7 @@ def to_order_record(order: Order) -> OrderRecord:
         status=order.status,
         currency=order.currency,
         total_amount=order.total_amount,
+        delivery_address=order.delivery_address,
     )
     record.line_items = [
         OrderLineItemRecord(
