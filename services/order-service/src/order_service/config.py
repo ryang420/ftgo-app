@@ -8,6 +8,10 @@ class OrderServiceSettings(BaseServiceSettings):
         default="postgresql+psycopg://ftgo:ftgo@localhost:15432/order_db",
         validation_alias="FTGO_ORDER_DATABASE_URL",
     )
+    amqp_url: str = Field(
+        default="amqp://ftgo:ftgo@localhost:5672/",
+        validation_alias="FTGO_AMQP_URL",
+    )
     restaurant_service_url: str = Field(
         default="http://localhost:8002",
         validation_alias="FTGO_RESTAURANT_SERVICE_URL",
