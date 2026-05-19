@@ -12,7 +12,7 @@ Postgres listens on `localhost:15432` with:
 
 - user: `ftgo`
 - password: `ftgo`
-- databases: `consumer_db`, `restaurant_db`, `order_db`
+- databases: `consumer_db`, `restaurant_db`, `order_db`, `kitchen_db`
 
 RabbitMQ listens on:
 
@@ -36,9 +36,9 @@ To start the full local stack in one command:
 make dev-up
 ```
 
-This starts Docker infrastructure, runs migrations, starts the core HTTP services
-and `order-service` outbox relay in the background, and writes logs to
-`.runtime/logs/`.
+This starts Docker infrastructure, runs migrations, starts the core HTTP services,
+`order-service` outbox relay, and `kitchen-service` OrderCreated consumer in the
+background, and writes logs to `.runtime/logs/`.
 
 To stop the full local stack:
 
@@ -60,6 +60,9 @@ The API gateway forwards:
 - `/consumers` to `consumer-service`
 - `/restaurants` to `restaurant-service`
 - `/orders` to `order-service`
+
+`kitchen-service` listens on `http://localhost:8004` and exposes
+`/kitchen/tickets` for the current asynchronous ticket projection.
 
 ## Reset Infrastructure
 

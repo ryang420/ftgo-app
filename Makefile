@@ -1,6 +1,6 @@
 COMPOSE_FILE := deploy/docker-compose/docker-compose.yml
 
-.PHONY: help sync infra-up infra-down infra-reset migrate migrate-consumer migrate-restaurant migrate-order dev-up dev-down demo-place-order run-api-gateway run-consumer run-restaurant run-order
+.PHONY: help sync infra-up infra-down infra-reset migrate migrate-consumer migrate-restaurant migrate-order migrate-kitchen dev-up dev-down demo-place-order run-api-gateway run-consumer run-restaurant run-order
 
 help:
 	@echo "FTGO local development commands"
@@ -30,7 +30,7 @@ infra-down:
 infra-reset:
 	docker compose -f $(COMPOSE_FILE) down -v
 
-migrate: migrate-consumer migrate-restaurant migrate-order
+migrate: migrate-consumer migrate-restaurant migrate-order migrate-kitchen
 
 migrate-consumer:
 	cd services/consumer-service && uv run --package consumer-service alembic -c alembic.ini upgrade head
@@ -40,6 +40,9 @@ migrate-restaurant:
 
 migrate-order:
 	cd services/order-service && uv run --package order-service alembic -c alembic.ini upgrade head
+
+migrate-kitchen:
+	cd services/kitchen-service && uv run --package kitchen-service alembic -c alembic.ini upgrade head
 
 dev-up:
 	./scripts/dev-up.sh

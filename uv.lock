@@ -475,6 +475,7 @@ name = "kitchen-service"
 version = "0.1.0"
 source = { editable = "services/kitchen-service" }
 dependencies = [
+    { name = "aio-pika" },
     { name = "alembic" },
     { name = "common" },
     { name = "fastapi" },
@@ -486,6 +487,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
+    { name = "aio-pika", specifier = ">=9.4.0" },
     { name = "alembic", specifier = ">=1.14.0" },
     { name = "common", editable = "libs/common" },
     { name = "fastapi", specifier = ">=0.115.0" },

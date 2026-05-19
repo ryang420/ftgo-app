@@ -36,6 +36,31 @@ stop_started_services() {
   done < "$PID_FILE"
 }
 
+ensure_database() {
+  local database="$1"
+
+  if docker compose -f "$COMPOSE_FILE" exec -T postgres psql -U ftgo -d ftgo -tc "SELECT 1 FROM pg_database WHERE datname = '$database'" | grep -q 1; then
+    return
+  fi
+
+  echo "Creating database $database..."
+  docker compose -f "$COMPOSE_FILE" exec -T postgres psql -U ftgo -d ftgo -c "CREATE DATABASE $database"
+}
+
+wait_for_postgres() {
+  echo "Waiting for Postgres..."
+  for _ in $(seq 1 30); do
+    if docker compose -f "$COMPOSE_FILE" exec -T postgres pg_isready -U ftgo -d ftgo >/dev/null 2>&1; then
+      echo "Postgres is ready"
+      return 0
+    fi
+    sleep 1
+  done
+
+  echo "Postgres did not become ready in time."
+  return 1
+}
+
 wait_for_health() {
   local name="$1"
   local pid="$2"
@@ -79,10 +104,11 @@ start_service() {
 
 start_worker() {
   local name="$1"
+  shift
   local log_file="$LOG_DIR/${name}.log"
 
   echo "Starting $name..."
-  nohup uv run --package order-service python services/order-service/src/order_service/relay.py >"$log_file" 2>&1 &
+  nohup "$@" >"$log_file" 2>&1 &
   local pid=$!
   disown "$pid" 2>/dev/null || true
   echo "$name:$pid:-:$log_file" >> "$PID_FILE"
@@ -101,14 +127,22 @@ trap 'echo "Startup failed; stopping services started by this script."; stop_sta
 echo "Starting Docker infrastructure..."
 docker compose -f "$COMPOSE_FILE" up -d
 
+wait_for_postgres
+ensure_database "consumer_db"
+ensure_database "restaurant_db"
+ensure_database "order_db"
+ensure_database "kitchen_db"
+
 echo "Running database migrations..."
 make migrate
 
 start_service "consumer-service" "consumer_service.main:app" "8001"
 start_service "restaurant-service" "restaurant_service.main:app" "8002"
 start_service "order-service" "order_service.main:app" "8003"
+start_service "kitchen-service" "kitchen_service.main:app" "8004"
 start_service "api-gateway" "api_gateway.main:app" "8000"
-start_worker "order-outbox-relay"
+start_worker "order-outbox-relay" uv run --package order-service python services/order-service/src/order_service/relay.py
+start_worker "kitchen-order-created-consumer" uv run --package kitchen-service python services/kitchen-service/src/kitchen_service/consumer.py
 
 trap - ERR
 
@@ -116,5 +150,6 @@ echo ""
 echo "FTGO local stack is running."
 echo "API gateway: http://localhost:8000"
 echo "Order outbox relay: running in background"
+echo "Kitchen service: http://localhost:8004"
 echo "Logs: $LOG_DIR"
 echo "Stop everything with: make dev-down"
