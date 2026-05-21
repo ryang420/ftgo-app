@@ -1,10 +1,9 @@
 import pytest
-from fastapi import Response
-from fastapi.testclient import TestClient
-
 from api_gateway.api.dependencies import get_upstream_proxy
 from api_gateway.infrastructure.upstream import UpstreamProxy
 from api_gateway.main import app
+from fastapi import Response
+from fastapi.testclient import TestClient
 
 
 class StubProxy(UpstreamProxy):
@@ -49,3 +48,11 @@ def test_routes_to_order_service(stub_proxy: StubProxy) -> None:
     assert response.status_code == 200
     assert response.json() == {"service": "orders", "path": ""}
     assert stub_proxy.calls == [("orders", "", "GET")]
+
+
+def test_routes_to_kitchen_service(stub_proxy: StubProxy) -> None:
+    response = TestClient(app).get("/kitchen/tickets")
+
+    assert response.status_code == 200
+    assert response.json() == {"service": "kitchen", "path": "tickets"}
+    assert stub_proxy.calls == [("kitchen", "tickets", "GET")]

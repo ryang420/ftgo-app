@@ -14,6 +14,56 @@ This is the first end-to-end FTGO use case.
 8. `order-service` outbox relay publishes `OrderCreated` to RabbitMQ.
 9. `kitchen-service` consumes `OrderCreated` and creates a kitchen ticket idempotently.
 
+## Sequence
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Client
+    participant Gateway as api-gateway
+    participant Consumer as consumer-service
+    participant Restaurant as restaurant-service
+    participant Order as order-service
+    participant OrderDB as order_db
+    participant Relay as order outbox relay
+    participant RabbitMQ
+    participant KitchenConsumer as kitchen OrderCreated consumer
+    participant Kitchen as kitchen-service
+    participant KitchenDB as kitchen_db
+
+    Client->>Gateway: POST /orders
+    Gateway->>Order: Forward POST /orders
+    Order->>Consumer: GET /consumers/{consumer_id}
+    Consumer-->>Order: Consumer exists
+    Order->>Restaurant: GET /restaurants/{restaurant_id}
+    Restaurant-->>Order: Restaurant exists
+    Order->>Restaurant: GET /restaurants/{restaurant_id}/menu-items/{menu_item_id}
+    Restaurant-->>Order: Menu item snapshot
+    Order->>OrderDB: Insert order + line items + OrderCreated outbox message
+    OrderDB-->>Order: Commit
+    Order-->>Gateway: 201 OrderRead
+    Gateway-->>Client: 201 OrderRead
+
+    loop Poll unpublished outbox messages
+        Relay->>OrderDB: SELECT unpublished OrderCreated
+        OrderDB-->>Relay: Outbox message
+        Relay->>RabbitMQ: Publish ftgo.Order.OrderCreated
+        Relay->>OrderDB: Mark outbox message published
+    end
+
+    RabbitMQ-->>KitchenConsumer: Deliver OrderCreated
+    KitchenConsumer->>Kitchen: create_ticket_for_order(order_id)
+    Kitchen->>KitchenDB: Find ticket by order_id
+    alt Ticket does not exist
+        Kitchen->>KitchenDB: Insert kitchen ticket + line items
+        KitchenDB-->>Kitchen: Commit
+    else Duplicate event
+        KitchenDB-->>Kitchen: Existing ticket
+    end
+    Kitchen-->>KitchenConsumer: Kitchen ticket
+    KitchenConsumer-->>RabbitMQ: Ack message
+```
+
 ## Example
 
 If the local stack is running, execute the full flow with:
@@ -88,7 +138,13 @@ are committed together so downstream services can consume the event later.
 After the event is published and consumed, the kitchen ticket can be queried:
 
 ```bash
-curl -s http://localhost:8004/kitchen/tickets | python -m json.tool
+curl -s http://localhost:8000/kitchen/tickets | python -m json.tool
+```
+
+To verify the whole flow:
+
+```bash
+make e2e-place-order
 ```
 
 ### Idempotency

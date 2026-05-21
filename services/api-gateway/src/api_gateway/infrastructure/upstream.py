@@ -4,7 +4,6 @@ from urllib.parse import urljoin
 import httpx
 from fastapi import HTTPException, Request, Response, status
 
-
 HOP_BY_HOP_HEADERS = {
     "connection",
     "keep-alive",

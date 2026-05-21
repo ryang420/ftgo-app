@@ -60,9 +60,22 @@ The API gateway forwards:
 - `/consumers` to `consumer-service`
 - `/restaurants` to `restaurant-service`
 - `/orders` to `order-service`
+- `/kitchen` to `kitchen-service`
 
 `kitchen-service` listens on `http://localhost:8004` and exposes
-`/kitchen/tickets` for the current asynchronous ticket projection.
+`/kitchen/tickets` for direct local debugging. Prefer
+`http://localhost:8000/kitchen/tickets` when going through the API gateway.
+
+## End-to-End Check
+
+With the local stack running:
+
+```bash
+make e2e-place-order
+```
+
+This creates an order, waits for `kitchen-service` to create a ticket, and
+checks that the `OrderCreated` outbox message was marked published.
 
 ## Reset Infrastructure
 

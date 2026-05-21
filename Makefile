@@ -1,6 +1,6 @@
 COMPOSE_FILE := deploy/docker-compose/docker-compose.yml
 
-.PHONY: help sync infra-up infra-down infra-reset migrate migrate-consumer migrate-restaurant migrate-order migrate-kitchen dev-up dev-down demo-place-order run-api-gateway run-consumer run-restaurant run-order
+.PHONY: help sync infra-up infra-down infra-reset migrate migrate-consumer migrate-restaurant migrate-order migrate-kitchen dev-up dev-down demo-place-order e2e-place-order run-api-gateway run-consumer run-restaurant run-order
 
 help:
 	@echo "FTGO local development commands"
@@ -9,6 +9,7 @@ help:
 	@echo "  make dev-up            Start infra, run migrations, and start core services"
 	@echo "  make dev-down          Stop core services and Docker infrastructure"
 	@echo "  make demo-place-order  Run the consumer + restaurant + order demo flow"
+	@echo "  make e2e-place-order   Verify order outbox publishes and kitchen ticket is created"
 	@echo "  make infra-up          Start Docker Postgres and RabbitMQ"
 	@echo "  make infra-down        Stop Docker infrastructure"
 	@echo "  make infra-reset       Stop infrastructure and remove volumes"
@@ -52,6 +53,9 @@ dev-down:
 
 demo-place-order:
 	./scripts/demo-place-order.sh
+
+e2e-place-order:
+	./scripts/e2e-place-order.sh
 
 run-consumer:
 	uv run uvicorn consumer_service.main:app --port 8001

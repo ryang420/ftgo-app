@@ -13,5 +13,6 @@ def get_upstream_proxy() -> UpstreamProxy:
             "consumers": settings.consumer_service_url,
             "restaurants": settings.restaurant_service_url,
             "orders": settings.order_service_url,
+            "kitchen": settings.kitchen_service_url,
         },
     )
