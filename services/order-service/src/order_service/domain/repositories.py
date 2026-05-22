@@ -15,3 +15,6 @@ class OrderRepository(Protocol):
 
     def add(self, order: Order) -> Order:
         ...
+
+    def save(self, order: Order) -> Order:
+        ...

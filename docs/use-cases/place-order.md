@@ -13,6 +13,8 @@ This is the first end-to-end FTGO use case.
 7. `order-service` records an `OrderCreated` event in its transactional outbox in the same database transaction.
 8. `order-service` outbox relay publishes `OrderCreated` to RabbitMQ.
 9. `kitchen-service` consumes `OrderCreated` and creates a kitchen ticket idempotently.
+10. `kitchen-service` records and publishes `KitchenTicketCreated`.
+11. `order-service` consumes `KitchenTicketCreated` and transitions the order to `APPROVED`.
 
 ## Sequence
 
@@ -30,6 +32,8 @@ sequenceDiagram
     participant KitchenConsumer as kitchen OrderCreated consumer
     participant Kitchen as kitchen-service
     participant KitchenDB as kitchen_db
+    participant KitchenRelay as kitchen outbox relay
+    participant OrderConsumer as order KitchenTicketCreated consumer
 
     Client->>Gateway: POST /orders
     Gateway->>Order: Forward POST /orders
@@ -55,13 +59,26 @@ sequenceDiagram
     KitchenConsumer->>Kitchen: create_ticket_for_order(order_id)
     Kitchen->>KitchenDB: Find ticket by order_id
     alt Ticket does not exist
-        Kitchen->>KitchenDB: Insert kitchen ticket + line items
+        Kitchen->>KitchenDB: Insert kitchen ticket + line items + KitchenTicketCreated outbox
         KitchenDB-->>Kitchen: Commit
     else Duplicate event
         KitchenDB-->>Kitchen: Existing ticket
     end
     Kitchen-->>KitchenConsumer: Kitchen ticket
     KitchenConsumer-->>RabbitMQ: Ack message
+
+    loop Poll unpublished kitchen outbox messages
+        KitchenRelay->>KitchenDB: SELECT unpublished KitchenTicketCreated
+        KitchenDB-->>KitchenRelay: Outbox message
+        KitchenRelay->>RabbitMQ: Publish ftgo.KitchenTicket.KitchenTicketCreated
+        KitchenRelay->>KitchenDB: Mark outbox message published
+    end
+
+    RabbitMQ-->>OrderConsumer: Deliver KitchenTicketCreated
+    OrderConsumer->>Order: approve_order(order_id)
+    Order->>OrderDB: Update order status to APPROVED
+    OrderDB-->>Order: Commit
+    OrderConsumer-->>RabbitMQ: Ack message
 ```
 
 ## Example
@@ -146,6 +163,28 @@ To verify the whole flow:
 ```bash
 make e2e-place-order
 ```
+
+## Order Status Model
+
+`order-service` owns the order lifecycle. Other services do not update order
+rows directly; they publish domain events and `order-service` decides the valid
+state transition.
+
+Current states:
+
+- `PENDING`: order was accepted and is waiting for downstream progress.
+- `APPROVED`: kitchen ticket was created and the order can continue.
+- `REJECTED`: order cannot proceed.
+- `CANCELLED`: order was cancelled before completion.
+
+State transitions are implemented on the `Order` domain model, for example
+`approve()`, `reject()`, and `cancel()`. Repeated events are treated
+idempotently where safe, such as approving an already approved order.
+
+Future states should be added by extending the domain state machine first, then
+updating the database enum migration and event consumers. This keeps status
+rules in one place instead of spreading string assignments across APIs,
+repositories, and message handlers.
 
 ### Idempotency
 

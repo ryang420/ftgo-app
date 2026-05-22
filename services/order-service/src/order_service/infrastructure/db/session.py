@@ -4,6 +4,7 @@ from common.db import Base, build_engine, build_session_factory
 from sqlalchemy.orm import Session
 
 from order_service.config import OrderServiceSettings
+
 from . import models  # noqa: F401
 
 settings = OrderServiceSettings()

@@ -8,10 +8,11 @@ from order_service.application.errors import (
     MenuItemNotFoundError,
     RestaurantNotFoundError,
 )
+from order_service.application.lifecycle import OrderLifecycleApplicationService
 from order_service.application.orders import OrderApplicationService
 from order_service.application.outbox import OutboxEvent
 from order_service.application.ports import MenuItemSnapshot
-from order_service.domain.models import Order, OrderStatus
+from order_service.domain.models import Order, OrderLineItem, OrderStatus
 
 
 class FakeOrderRepository:
@@ -27,6 +28,13 @@ class FakeOrderRepository:
     def add(self, order: Order) -> Order:
         self.orders.append(order)
         return order
+
+    def save(self, order: Order) -> Order:
+        for index, existing in enumerate(self.orders):
+            if existing.id == order.id:
+                self.orders[index] = order
+                return order
+        raise ValueError(f"Order {order.id} was not found")
 
 
 class FakeRestaurantCatalog:
@@ -156,6 +164,61 @@ async def test_create_order_rejects_unknown_consumer() -> None:
     assert repository.orders == []
     assert outbox.events == []
     assert unit_of_work.committed is False
+
+
+def test_approve_order_transitions_pending_order_to_approved() -> None:
+    repository = FakeOrderRepository()
+    unit_of_work = FakeUnitOfWork()
+    order = Order.create_pending(
+        consumer_id=uuid4(),
+        restaurant_id=10,
+        currency="USD",
+        delivery_address="123 Main St",
+        line_items=[
+            OrderLineItem(
+                menu_item_id=20,
+                name="Beef Noodles",
+                quantity=2,
+                unit_price=Decimal("28.00"),
+            )
+        ],
+    )
+    repository.add(order)
+    service = OrderLifecycleApplicationService(repository, unit_of_work)
+
+    approved = service.approve_order(order.id)
+
+    assert approved is not None
+    assert approved.status == OrderStatus.APPROVED
+    assert unit_of_work.committed is True
+
+
+def test_approve_order_is_idempotent_for_already_approved_order() -> None:
+    repository = FakeOrderRepository()
+    unit_of_work = FakeUnitOfWork()
+    order = Order.create_pending(
+        consumer_id=uuid4(),
+        restaurant_id=10,
+        currency="USD",
+        delivery_address="123 Main St",
+        line_items=[
+            OrderLineItem(
+                menu_item_id=20,
+                name="Beef Noodles",
+                quantity=2,
+                unit_price=Decimal("28.00"),
+            )
+        ],
+    )
+    order.approve()
+    repository.add(order)
+    service = OrderLifecycleApplicationService(repository, unit_of_work)
+
+    approved = service.approve_order(order.id)
+
+    assert approved is not None
+    assert approved.status == OrderStatus.APPROVED
+    assert unit_of_work.committed is True
 
 
 @pytest.mark.asyncio

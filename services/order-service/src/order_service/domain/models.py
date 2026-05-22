@@ -1,16 +1,23 @@
 from __future__ import annotations
 
-import enum
 import uuid
 from dataclasses import dataclass, field
 from decimal import Decimal
+from enum import StrEnum
 
 
-class OrderStatus(str, enum.Enum):
+class OrderStatus(StrEnum):
     PENDING = "PENDING"
     APPROVED = "APPROVED"
     REJECTED = "REJECTED"
     CANCELLED = "CANCELLED"
+
+
+class InvalidOrderStatusTransitionError(Exception):
+    def __init__(self, current: OrderStatus, target: OrderStatus):
+        self.current = current
+        self.target = target
+        super().__init__(f"Cannot transition order from {current.value} to {target.value}")
 
 
 @dataclass(slots=True)
@@ -45,6 +52,27 @@ class Order:
     @property
     def total_amount(self) -> Decimal:
         return sum((item.subtotal() for item in self.line_items), start=Decimal("0.00"))
+
+    def approve(self) -> None:
+        if self.status == OrderStatus.APPROVED:
+            return
+        if self.status != OrderStatus.PENDING:
+            raise InvalidOrderStatusTransitionError(self.status, OrderStatus.APPROVED)
+        self.status = OrderStatus.APPROVED
+
+    def reject(self) -> None:
+        if self.status == OrderStatus.REJECTED:
+            return
+        if self.status != OrderStatus.PENDING:
+            raise InvalidOrderStatusTransitionError(self.status, OrderStatus.REJECTED)
+        self.status = OrderStatus.REJECTED
+
+    def cancel(self) -> None:
+        if self.status == OrderStatus.CANCELLED:
+            return
+        if self.status not in {OrderStatus.PENDING, OrderStatus.APPROVED}:
+            raise InvalidOrderStatusTransitionError(self.status, OrderStatus.CANCELLED)
+        self.status = OrderStatus.CANCELLED
 
     @classmethod
     def create_pending(

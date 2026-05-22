@@ -82,4 +82,41 @@ if [[ "$published" != "t" ]]; then
 fi
 
 echo "OrderCreated outbox message was published."
+echo "Waiting for order approval..."
+
+order_status=""
+for _ in $(seq 1 20); do
+  order_response="$(curl -fsS "${GATEWAY_URL}/orders/${order_id}")"
+  order_status="$(printf '%s' "$order_response" | json_value "data['status']")"
+  if [[ "$order_status" == "APPROVED" ]]; then
+    break
+  fi
+  sleep 1
+done
+
+if [[ "$order_status" != "APPROVED" ]]; then
+  echo "Order ${order_id} did not transition to APPROVED. Last status: ${order_status}"
+  exit 1
+fi
+
+ticket_id="$(printf '%s' "$ticket_json" | json_value "data['id']")"
+kitchen_published_query="
+select published_at is not null
+from outbox_messages
+where aggregate_id = '${ticket_id}'
+  and event_type = 'KitchenTicketCreated'
+order by created_at desc
+limit 1
+"
+kitchen_published="$(
+  docker compose -f "$COMPOSE_FILE" exec -T postgres psql -U ftgo -d kitchen_db -tAc "$kitchen_published_query"
+)"
+
+if [[ "$kitchen_published" != "t" ]]; then
+  echo "KitchenTicketCreated outbox message for ${ticket_id} was not published."
+  exit 1
+fi
+
+echo "KitchenTicketCreated outbox message was published."
+echo "Order transitioned to APPROVED."
 echo "E2E place order flow passed."

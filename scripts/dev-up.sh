@@ -142,7 +142,9 @@ start_service "order-service" "order_service.main:app" "8003"
 start_service "kitchen-service" "kitchen_service.main:app" "8004"
 start_service "api-gateway" "api_gateway.main:app" "8000"
 start_worker "order-outbox-relay" uv run --package order-service python services/order-service/src/order_service/relay.py
+start_worker "kitchen-outbox-relay" uv run --package kitchen-service python services/kitchen-service/src/kitchen_service/relay.py
 start_worker "kitchen-order-created-consumer" uv run --package kitchen-service python services/kitchen-service/src/kitchen_service/consumer.py
+start_worker "order-kitchen-ticket-created-consumer" uv run --package order-service python services/order-service/src/order_service/consumer.py
 
 trap - ERR
 
@@ -150,6 +152,7 @@ echo ""
 echo "FTGO local stack is running."
 echo "API gateway: http://localhost:8000"
 echo "Order outbox relay: running in background"
+echo "Kitchen outbox relay: running in background"
 echo "Kitchen service: http://localhost:8004"
 echo "Logs: $LOG_DIR"
 echo "Stop everything with: make dev-down"

@@ -1,8 +1,8 @@
 from common.api import create_base_app
 
+import order_service.infrastructure.db.models  # noqa: F401
 from order_service.api.routes import router
 from order_service.config import OrderServiceSettings
-import order_service.infrastructure.db.models  # noqa: F401
 from order_service.infrastructure.db import init_db
 
 settings = OrderServiceSettings()

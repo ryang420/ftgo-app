@@ -17,7 +17,11 @@ from kitchen_service.application.commands import (
 from kitchen_service.application.tickets import KitchenTicketApplicationService
 from kitchen_service.config import get_settings
 from kitchen_service.infrastructure.db import SessionLocal
-from kitchen_service.infrastructure.db.repositories import SqlAlchemyKitchenTicketRepository
+from kitchen_service.infrastructure.db.repositories import (
+    SqlAlchemyKitchenTicketRepository,
+    SqlAlchemyOutboxWriter,
+    SqlAlchemyUnitOfWork,
+)
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
@@ -45,7 +49,11 @@ async def handle_message(message: IncomingMessage) -> None:
         envelope = json.loads(message.body.decode())
         session = SessionLocal()
         try:
-            service = KitchenTicketApplicationService(SqlAlchemyKitchenTicketRepository(session))
+            service = KitchenTicketApplicationService(
+                ticket_repository=SqlAlchemyKitchenTicketRepository(session),
+                outbox=SqlAlchemyOutboxWriter(session),
+                unit_of_work=SqlAlchemyUnitOfWork(session),
+            )
             ticket = service.create_ticket_for_order(build_command(envelope))
             logger.info(
                 "Kitchen ticket %s is ready for order %s from message %s",

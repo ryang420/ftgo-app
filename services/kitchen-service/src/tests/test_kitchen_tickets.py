@@ -4,6 +4,7 @@ from kitchen_service.application.commands import (
     CreateKitchenTicketCommand,
     CreateKitchenTicketLineItemCommand,
 )
+from kitchen_service.application.outbox import OutboxEvent
 from kitchen_service.application.tickets import KitchenTicketApplicationService
 from kitchen_service.domain.models import KitchenTicket
 
@@ -23,6 +24,22 @@ class FakeKitchenTicketRepository:
         return ticket
 
 
+class FakeOutboxWriter:
+    def __init__(self):
+        self.events: list[OutboxEvent] = []
+
+    def add(self, event: OutboxEvent) -> None:
+        self.events.append(event)
+
+
+class FakeUnitOfWork:
+    def __init__(self):
+        self.committed = False
+
+    def commit(self) -> None:
+        self.committed = True
+
+
 def build_command(order_id: UUID) -> CreateKitchenTicketCommand:
     return CreateKitchenTicketCommand(
         order_id=order_id,
@@ -39,7 +56,9 @@ def build_command(order_id: UUID) -> CreateKitchenTicketCommand:
 
 def test_create_ticket_for_order_is_idempotent_by_order_id() -> None:
     repository = FakeKitchenTicketRepository()
-    service = KitchenTicketApplicationService(repository)
+    outbox = FakeOutboxWriter()
+    unit_of_work = FakeUnitOfWork()
+    service = KitchenTicketApplicationService(repository, outbox, unit_of_work)
     order_id = uuid4()
 
     first = service.create_ticket_for_order(build_command(order_id))
@@ -49,3 +68,7 @@ def test_create_ticket_for_order_is_idempotent_by_order_id() -> None:
     assert len(repository.tickets) == 1
     assert repository.tickets[0].order_id == order_id
     assert repository.tickets[0].line_items[0].name == "Beef Noodles"
+    assert unit_of_work.committed is True
+    assert len(outbox.events) == 1
+    assert outbox.events[0].event_type == "KitchenTicketCreated"
+    assert outbox.events[0].payload["order_id"] == str(order_id)

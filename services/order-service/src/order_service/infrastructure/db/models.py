@@ -4,7 +4,7 @@ from decimal import Decimal
 
 from common.db import Base
 from common.outbox.models import OutboxMessageRecord  # noqa: F401
-from sqlalchemy import JSON, DateTime, Enum, ForeignKey, Numeric, String, func
+from sqlalchemy import DateTime, Enum, ForeignKey, Numeric, String, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 

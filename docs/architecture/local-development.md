@@ -37,8 +37,9 @@ make dev-up
 ```
 
 This starts Docker infrastructure, runs migrations, starts the core HTTP services,
-`order-service` outbox relay, and `kitchen-service` OrderCreated consumer in the
-background, and writes logs to `.runtime/logs/`.
+outbox relays for `order-service` and `kitchen-service`, plus the event consumers
+for `OrderCreated` and `KitchenTicketCreated` in the background. Logs are written
+to `.runtime/logs/`.
 
 To stop the full local stack:
 
@@ -75,7 +76,8 @@ make e2e-place-order
 ```
 
 This creates an order, waits for `kitchen-service` to create a ticket, and
-checks that the `OrderCreated` outbox message was marked published.
+checks that the `OrderCreated` and `KitchenTicketCreated` outbox messages were
+published and that the order transitioned to `APPROVED`.
 
 ## Reset Infrastructure
 

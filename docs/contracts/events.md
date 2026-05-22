@@ -37,3 +37,39 @@ Envelope:
   "occurred_at": "2026-05-19T12:00:00+00:00"
 }
 ```
+
+## KitchenTicketCreated
+
+Published by `kitchen-service` when an `OrderCreated` event has produced a
+kitchen ticket.
+
+- Exchange: `ftgo.events`
+- Routing key: `ftgo.KitchenTicket.KitchenTicketCreated`
+- Delivery: at least once
+- Idempotency key for consumers: `message_id` or `payload.ticket_id`
+- Order-side idempotency key: `payload.order_id`
+
+Envelope:
+
+```json
+{
+  "event_type": "KitchenTicketCreated",
+  "aggregate_type": "KitchenTicket",
+  "aggregate_id": "<ticket-id>",
+  "payload": {
+    "ticket_id": "<ticket-id>",
+    "order_id": "<order-id>",
+    "restaurant_id": 1,
+    "status": "CREATE_PENDING",
+    "line_items": [
+      {
+        "id": "<ticket-line-item-id>",
+        "menu_item_id": 20,
+        "name": "Beef Noodles",
+        "quantity": 2
+      }
+    ]
+  },
+  "occurred_at": "2026-05-21T12:00:00+00:00"
+}
+```

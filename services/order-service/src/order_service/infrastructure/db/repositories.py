@@ -40,6 +40,20 @@ class SqlAlchemyOrderRepository(OrderRepository):
         self.session.refresh(record)
         return self.get_order(record.id) or order
 
+    def save(self, order: Order) -> Order:
+        statement = (
+            select(OrderRecord)
+            .options(selectinload(OrderRecord.line_items))
+            .where(OrderRecord.id == order.id)
+        )
+        record = self.session.scalar(statement)
+        if record is None:
+            raise ValueError(f"Order {order.id} was not found")
+        record.status = order.status
+        self.session.flush()
+        self.session.refresh(record)
+        return self.get_order(record.id) or order
+
 
 class SqlAlchemyOutboxWriter:
     def __init__(self, session: Session):
