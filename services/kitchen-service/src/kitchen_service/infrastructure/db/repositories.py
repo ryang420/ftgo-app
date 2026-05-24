@@ -23,6 +23,17 @@ class SqlAlchemyKitchenTicketRepository(KitchenTicketRepository):
         )
         return [to_domain_ticket(record) for record in self.session.scalars(statement).all()]
 
+    def get_by_id(self, ticket_id: UUID) -> KitchenTicket | None:
+        statement = (
+            select(KitchenTicketRecord)
+            .options(selectinload(KitchenTicketRecord.line_items))
+            .where(KitchenTicketRecord.id == ticket_id)
+        )
+        record = self.session.scalar(statement)
+        if record is None:
+            return None
+        return to_domain_ticket(record)
+
     def get_by_order_id(self, order_id: UUID) -> KitchenTicket | None:
         statement = (
             select(KitchenTicketRecord)
@@ -40,6 +51,20 @@ class SqlAlchemyKitchenTicketRepository(KitchenTicketRepository):
         self.session.flush()
         self.session.refresh(record)
         return self.get_by_order_id(record.order_id) or ticket
+
+    def save(self, ticket: KitchenTicket) -> KitchenTicket:
+        statement = (
+            select(KitchenTicketRecord)
+            .options(selectinload(KitchenTicketRecord.line_items))
+            .where(KitchenTicketRecord.id == ticket.id)
+        )
+        record = self.session.scalar(statement)
+        if record is None:
+            raise ValueError(f"Kitchen ticket {ticket.id} was not found")
+        record.status = ticket.status
+        self.session.flush()
+        self.session.refresh(record)
+        return self.get_by_id(record.id) or ticket
 
 
 class SqlAlchemyOutboxWriter:

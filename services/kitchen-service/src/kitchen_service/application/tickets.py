@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from kitchen_service.application.commands import CreateKitchenTicketCommand
 from kitchen_service.application.outbox import kitchen_ticket_created_event
 from kitchen_service.application.ports import OutboxWriter, UnitOfWork
@@ -40,3 +42,30 @@ class KitchenTicketApplicationService:
         self.outbox.add(kitchen_ticket_created_event(saved_ticket))
         self.unit_of_work.commit()
         return saved_ticket
+
+    def accept_ticket(self, ticket_id: UUID) -> KitchenTicket | None:
+        ticket = self.ticket_repository.get_by_id(ticket_id)
+        if ticket is None:
+            return None
+        ticket.accept()
+        saved = self.ticket_repository.save(ticket)
+        self.unit_of_work.commit()
+        return saved
+
+    def start_preparing(self, ticket_id: UUID) -> KitchenTicket | None:
+        ticket = self.ticket_repository.get_by_id(ticket_id)
+        if ticket is None:
+            return None
+        ticket.start_preparing()
+        saved = self.ticket_repository.save(ticket)
+        self.unit_of_work.commit()
+        return saved
+
+    def mark_ready_for_pickup(self, ticket_id: UUID) -> KitchenTicket | None:
+        ticket = self.ticket_repository.get_by_id(ticket_id)
+        if ticket is None:
+            return None
+        ticket.mark_ready_for_pickup()
+        saved = self.ticket_repository.save(ticket)
+        self.unit_of_work.commit()
+        return saved
