@@ -49,6 +49,15 @@ class KitchenTicket:
             )
         self.status = KitchenTicketStatus.ACCEPTED
 
+    def reject(self) -> None:
+        if self.status == KitchenTicketStatus.CANCELLED:
+            return
+        if self.status != KitchenTicketStatus.CREATE_PENDING:
+            raise InvalidKitchenTicketStatusTransitionError(
+                self.status, KitchenTicketStatus.CANCELLED
+            )
+        self.status = KitchenTicketStatus.CANCELLED
+
     def start_preparing(self) -> None:
         if self.status == KitchenTicketStatus.PREPARING:
             return

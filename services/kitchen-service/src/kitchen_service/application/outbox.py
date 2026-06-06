@@ -33,3 +33,37 @@ def kitchen_ticket_created_event(ticket: KitchenTicket) -> OutboxEvent:
             ],
         },
     )
+
+
+def kitchen_ticket_accepted_event(ticket: KitchenTicket) -> OutboxEvent:
+    return OutboxEvent(
+        aggregate_type="KitchenTicket",
+        aggregate_id=str(ticket.id),
+        event_type="KitchenTicketAccepted",
+        payload={
+            "ticket_id": str(ticket.id),
+            "order_id": str(ticket.order_id),
+            "restaurant_id": ticket.restaurant_id,
+            "status": ticket.status.value,
+        },
+    )
+
+
+def kitchen_ticket_rejected_event(
+    ticket: KitchenTicket,
+    rejection_reason: str | None = None,
+) -> OutboxEvent:
+    payload: dict[str, Any] = {
+        "ticket_id": str(ticket.id),
+        "order_id": str(ticket.order_id),
+        "restaurant_id": ticket.restaurant_id,
+        "status": ticket.status.value,
+    }
+    if rejection_reason is not None:
+        payload["rejection_reason"] = rejection_reason
+    return OutboxEvent(
+        aggregate_type="KitchenTicket",
+        aggregate_id=str(ticket.id),
+        event_type="KitchenTicketRejected",
+        payload=payload,
+    )
