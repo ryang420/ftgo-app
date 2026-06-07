@@ -71,7 +71,7 @@ processing.
 in `order_query_db`, so that queries can be served without joining across multiple
 services or databases.
 
-#### Acceptance Criteria
+#### Acceptance Criteria (Requirement 1)
 
 1. THE Order_Query_Service SHALL maintain one `OrderSummary` row per unique
    `order_id` in `order_query_db`, containing `order_id`, `consumer_id`,
@@ -103,7 +103,7 @@ services or databases.
 **User Story:** As a developer, I want the read model schema managed by Alembic,
 so that schema changes are version-controlled and reproducible.
 
-#### Acceptance Criteria
+#### Acceptance Criteria (Requirement 2)
 
 1. THE Order_Query_Service SHALL manage the `order_query_db` schema exclusively
    through Alembic migrations stored under
@@ -132,7 +132,7 @@ so that schema changes are version-controlled and reproducible.
 `order-query-service`, so that the service receives order lifecycle events and
 keeps the read model up to date.
 
-#### Acceptance Criteria
+#### Acceptance Criteria (Requirement 3)
 
 1. WHEN `order-query-service` starts its Event_Consumer, THE Event_Consumer SHALL
    declare the `ftgo.events` topic exchange as durable, declare a durable queue
@@ -171,7 +171,7 @@ keeps the read model up to date.
 `OrderSummary` when an `OrderCreated` event is received, so that newly placed
 orders are immediately queryable via the read model.
 
-#### Acceptance Criteria
+#### Acceptance Criteria (Requirement 4)
 
 1. WHEN an `OrderCreated` event is received and no `OrderSummary` with the
    matching `order_id` exists, THE Event_Handler SHALL create a new `OrderSummary`
@@ -200,7 +200,7 @@ orders are immediately queryable via the read model.
 consumer pipeline stays in sync with the event stream even when no status change
 is required.
 
-#### Acceptance Criteria
+#### Acceptance Criteria (Requirement 5)
 
 1. WHEN a `KitchenTicketCreated` event is received and an `OrderSummary` with the
    matching `order_id` exists, THE Event_Handler SHALL leave all `OrderSummary`
@@ -221,7 +221,7 @@ is required.
 status to `PREPARING` when a `KitchenTicketAccepted` event is received, so that
 the read model reflects that the kitchen has accepted the order.
 
-#### Acceptance Criteria
+#### Acceptance Criteria (Requirement 6)
 
 1. WHEN a `KitchenTicketAccepted` event is received and the `OrderSummary` for
    the matching `order_id` exists with a status other than `PREPARING`, THE
@@ -249,7 +249,7 @@ the read model reflects that the kitchen has accepted the order.
 status to `CANCELLED` when a `KitchenTicketRejected` event is received, so that
 the read model reflects that the order cannot proceed.
 
-#### Acceptance Criteria
+#### Acceptance Criteria (Requirement 7)
 
 1. WHEN a `KitchenTicketRejected` event is received and the `OrderSummary` for
    the matching `order_id` exists with a status other than `CANCELLED`, THE
@@ -274,7 +274,7 @@ the read model reflects that the order cannot proceed.
 unrecognised or malformed events, so that bad messages do not block the consumer
 queue or crash the service.
 
-#### Acceptance Criteria
+#### Acceptance Criteria (Requirement 8)
 
 1. IF an incoming message body cannot be parsed as a valid JSON object, THEN THE
    Event_Consumer SHALL log the raw message body (truncated to 1,000 characters)
@@ -301,7 +301,7 @@ queue or crash the service.
 its ID via the API gateway, so that I can display the current status and details
 of a specific order.
 
-#### Acceptance Criteria
+#### Acceptance Criteria (Requirement 9)
 
 1. WHEN a `GET /orders/{order_id}` request is received and an `OrderSummary` with
    the matching `order_id` exists, THE Order_Query_Service SHALL return HTTP `200`
@@ -328,7 +328,7 @@ of a specific order.
 **User Story:** As a consumer client, I want to list all orders belonging to a
 specific consumer, so that I can show a consumer's order history.
 
-#### Acceptance Criteria
+#### Acceptance Criteria (Requirement 10)
 
 1. WHEN a `GET /orders?consumer_id={id}` request is received and one or more
    `OrderSummary` rows with the matching `consumer_id` exist, THE
@@ -354,7 +354,7 @@ specific consumer, so that I can show a consumer's order history.
 **User Story:** As an operations user, I want to filter orders by their current
 status, so that I can monitor all orders in a given lifecycle state.
 
-#### Acceptance Criteria
+#### Acceptance Criteria (Requirement 11)
 
 1. WHEN a `GET /orders?status={status}` request is received and one or more
    `OrderSummary` rows with the matching `status` exist, THE Order_Query_Service
@@ -376,7 +376,7 @@ status, so that I can monitor all orders in a given lifecycle state.
 respect to duplicate RabbitMQ deliveries, so that redelivered messages do not
 corrupt the `OrderSummary` read model.
 
-#### Acceptance Criteria
+#### Acceptance Criteria (Requirement 12)
 
 1. IF the same `OrderCreated` message is processed more than once, THEN THE
    Event_Consumer SHALL produce exactly one `OrderSummary` row with the same
@@ -405,7 +405,7 @@ corrupt the `OrderSummary` read model.
 DDD layering rules as `order-service`, so that the codebase remains consistent
 and maintainable.
 
-#### Acceptance Criteria
+#### Acceptance Criteria (Requirement 13)
 
 1. THE Order_Query_Service SHALL organise its source code under
    `services/order-query-service/src/order_query_service/` with the sub-packages
