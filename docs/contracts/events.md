@@ -73,3 +73,60 @@ Envelope:
   "occurred_at": "2026-05-21T12:00:00+00:00"
 }
 ```
+
+## KitchenTicketAccepted
+
+Published by `kitchen-service` when kitchen staff accept a ticket.
+
+- Exchange: `ftgo.events`
+- Routing key: `ftgo.KitchenTicket.KitchenTicketAccepted`
+- Delivery: at least once
+- Idempotency key for consumers: `message_id` or `payload.ticket_id`
+- Order-side idempotency key: `payload.order_id`
+
+Envelope:
+
+```json
+{
+  "event_type": "KitchenTicketAccepted",
+  "aggregate_type": "KitchenTicket",
+  "aggregate_id": "<ticket-id>",
+  "payload": {
+    "ticket_id": "<ticket-id>",
+    "order_id": "<order-id>",
+    "restaurant_id": 1,
+    "status": "ACCEPTED"
+  },
+  "occurred_at": "2026-06-07T12:00:00+00:00"
+}
+```
+
+## KitchenTicketRejected
+
+Published by `kitchen-service` when kitchen staff reject a ticket.
+
+- Exchange: `ftgo.events`
+- Routing key: `ftgo.KitchenTicket.KitchenTicketRejected`
+- Delivery: at least once
+- Idempotency key for consumers: `message_id` or `payload.ticket_id`
+- Order-side idempotency key: `payload.order_id`
+
+Envelope (with rejection reason):
+
+```json
+{
+  "event_type": "KitchenTicketRejected",
+  "aggregate_type": "KitchenTicket",
+  "aggregate_id": "<ticket-id>",
+  "payload": {
+    "ticket_id": "<ticket-id>",
+    "order_id": "<order-id>",
+    "restaurant_id": 1,
+    "status": "CANCELLED",
+    "rejection_reason": "Out of stock"
+  },
+  "occurred_at": "2026-06-07T12:00:00+00:00"
+}
+```
+
+When no `rejection_reason` is provided, the key is omitted from the payload entirely (not set to `null`).

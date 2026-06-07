@@ -30,17 +30,17 @@
 
 ## Spec Driven Development
 
-- Treat `specs/` as the project spec workspace.
-- Each feature spec lives at `specs/<feature-name>/` and should contain:
-  `requirements.md`, `design.md`, and `tasks.md`.
-- Use `requirements-first` flow:
-  1. Draft or update `requirements.md` with user stories and acceptance criteria.
-  2. Draft or update `design.md` only after requirements are clear.
+- Treat `openspec/` as the project spec workspace.
+- Active feature work lives under `openspec/changes/<change-name>/`.
+- Current accepted capabilities live under `openspec/specs/`.
+- For active changes, use OpenSpec's proposal-first flow:
+  1. Draft or update `proposal.md` with motivation, behavior, and acceptance criteria.
+  2. Draft or update `design.md` only after the proposal is clear.
   3. Draft or update `tasks.md` only after design is clear.
   4. Implement only from `tasks.md`, starting with the earliest unchecked task or dependency wave.
-- Before implementing a feature, read all three spec files when present and identify blockers.
-- If a spec has only `requirements.md`, do not implement it yet unless the user explicitly asks to skip the design/tasks stages.
-- When behavior changes during implementation, update the relevant spec and contract docs in the same change.
+- Before implementing a change, read all available files in its `openspec/changes/<change-name>/` folder and identify blockers.
+- If a change has only `proposal.md`, do not implement it yet unless the user explicitly asks to skip the design/tasks stages.
+- When behavior changes during implementation, update the relevant OpenSpec change and contract docs in the same change.
 - Keep task checkboxes current as work is completed.
 
 ## Testing And Quality

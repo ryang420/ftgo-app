@@ -1,20 +1,54 @@
 schema: spec-driven
 
-# Project context (optional)
-# This is shown to AI when creating artifacts.
-# Add your tech stack, conventions, style guides, domain knowledge, etc.
-# Example:
-#   context: |
-#     Tech stack: TypeScript, React, Node.js
-#     We use conventional commits
-#     Domain: e-commerce platform
+context: |
+  ## Tech Stack
+  - Python 3.12+, FastAPI, SQLAlchemy (async), PostgreSQL, RabbitMQ (aio_pika)
+  - Frontend: React + Tailwind CSS (scaffold under `frontend/`)
+  - Package management: `uv` with workspaces
+  - Linting: ruff; Type checking: mypy; Testing: pytest (asyncio_mode=auto, Hypothesis for property tests)
 
-# Per-artifact rules (optional)
-# Add custom rules for specific artifacts.
-# Example:
-#   rules:
-#     proposal:
-#       - Keep proposals under 500 words
-#       - Always include a "Non-goals" section
-#     tasks:
-#       - Break tasks into chunks of max 2 hours
+  ## Architecture
+  - DDD-first microservices: each service follows `api → application → domain` layering, with `infrastructure` implementing domain ports
+  - Transactional outbox: domain events written atomically with aggregate state, polled and published to RabbitMQ by a relay process
+  - Port/Adapter: domain defines `Protocol` classes; infrastructure provides concrete impls; DI wiring in `api/dependencies.py`
+  - Database per service: each service owns its own Postgres database in a single Postgres instance
+  - `order-service` is the reference implementation; other services follow its patterns
+
+  ## Services
+  | Service | Port | Purpose |
+  |---------|------|---------|
+  | api-gateway | 8000 | Proxies /consumers, /restaurants, /orders, /kitchen |
+  | consumer-service | 8001 | Consumer CRUD |
+  | restaurant-service | 8002 | Restaurant + menu item CRUD |
+  | order-service | 8003 | Order lifecycle, owns order state machine |
+  | kitchen-service | 8004 | Kitchen ticket lifecycle |
+
+  ## Shared Library (`libs/common/`)
+  Technical primitives only — no domain logic: `config`, `db`, `api` (FastAPI app factory), `outbox`, `messaging`
+
+  ## Conventions
+  - Keep `libs/common/` limited to shared technical utilities
+  - Domain models are plain Python dataclasses with `slots=True`
+  - Repository and port abstractions use `Protocol`
+  - ORM models live in `infrastructure/db/models.py`
+  - Use transactional outbox for all cross-service events
+  - Document API and event contracts under `docs/contracts/`
+  - Prefer root-level `tests/e2e` pytest tests for cross-service flows
+  - Git: conventional commits (`type(scope): message`) with `Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>`
+
+rules:
+  proposal:
+    - Proposals must identify which services are affected and whether `libs/common/` changes are needed
+    - Include a sequence diagram for any cross-service flow
+    - Call out new events, routing keys, and idempotency keys explicitly
+    - Reference the existing DDD layering pattern from `order-service`
+  tasks:
+    - Tasks are organised in dependency-order waves; each wave must pass all existing tests before proceeding
+    - Property-based tests use Hypothesis (`@given`) in `test_*_properties.py` files; unit tests use fakes in `test_*.py`
+    - New domain events require: outbox builder → application service write → API route / consumer handler → contract doc
+    - Alembic migrations for enum changes must use `op.execute()` outside a transaction block
+  design:
+    - Design documents must describe changes per service (domain, application, API/consumer, infrastructure)
+    - Include error-handling tables for API routes and consumer handlers
+    - Specify outbox event payload shapes with JSON examples
+    - List correctness properties that bridge requirements to tests
