@@ -155,7 +155,7 @@ where React components). No new frameworks beyond the test stack listed below.
     - Replace the existing `<Navigate to="/" replace />` catch-all with `<NotFoundPage />`
     - _Requirements: 10.1, 10.2, 10.5_
 
-- [ ] 5. Implement Restaurant detail augmentation and cart
+- [x] 5. Implement Restaurant detail augmentation and cart
   - [x] 5.1 Augment `frontend/src/components/MenuItemCard.jsx` — add "Add to cart" button
     - Accept new props: `onAddToCart: (item) => void`, `sessionExists: boolean`
     - Render enabled "Add to cart" button when `sessionExists === true`
@@ -201,7 +201,7 @@ where React components). No new frameworks beyond the test stack listed below.
     - On order placed: `setCart(clearCart())`, `navigate("/orders/" + orderId)`
     - _Requirements: 3.1, 3.2, 3.4, 3.5, 3.6, 4.1, 4.3_
 
-- [ ] 6. Implement order tracking pages
+- [x] 6. Implement order tracking pages
   - [x] 6.1 Create `frontend/src/hooks/useOrderPolling.js`
     - Accept `orderId` param; encapsulate `setInterval` + `AbortController` polling logic
     - Return `{ order, status, transientError, dismissTransientError }`
@@ -236,7 +236,7 @@ where React components). No new frameworks beyond the test stack listed below.
       row click navigates correctly
     - _Requirements: 6.4, 6.5, 6.6_
 
-- [ ] 7. Implement Kitchen Dashboard
+- [x] 7. Implement Kitchen Dashboard
   - [x] 7.1 Create `frontend/src/pages/KitchenDashboardPage.jsx`
     - Fetch `GET /kitchen/tickets` on mount; show `LoadingSpinner` during fetch
     - Derive `actionableTickets` (status `CREATE_PENDING`) and `readOnlyTickets`
@@ -262,7 +262,7 @@ where React components). No new frameworks beyond the test stack listed below.
       button disabling (7.7), global banner on non-409 error
     - _Requirements: 7.1, 7.6, 7.7, 7.8, 7.9, 7.10_
 
-- [ ] 8. Implement Operations and Consumer Lookup pages
+- [x] 8. Implement Operations and Consumer Lookup pages
   - [x] 8.1 Create `frontend/src/pages/OperationsPage.jsx`
     - Default status filter `PENDING`; fetch `GET /orders?status=PENDING` on mount
     - Render four-option filter control: `PENDING`, `APPROVED`, `PREPARING`, `CANCELLED`
@@ -296,7 +296,7 @@ where React components). No new frameworks beyond the test stack listed below.
       field value
     - _Requirements: 9.1, 9.4, 9.5_
 
-- [ ] 9. Add NotFoundPage and final integration
+- [x] 9. Add NotFoundPage and final integration
   - [x] 9.1 Create `frontend/src/pages/NotFoundPage.jsx`
     - Render "Page not found" message and a `Link` back to `/`
     - Apply dark stone/orange palette consistent with all other pages
@@ -307,7 +307,7 @@ where React components). No new frameworks beyond the test stack listed below.
     - Use `fc.anything()` serialised via `JSON.stringify`; assert rendered text never matches
       `/^\[object Object\]/` or `/^\[.*\]$/`
 
-- [ ] 10. Final checkpoint — Ensure all tests pass
+- [x] 10. Final checkpoint — Ensure all tests pass
   - Run `cd frontend && npm run test` (or `npx vitest --run`) and confirm all test suites pass.
   - Fix any failures before marking this task complete.
   - Ensure all tests pass, ask the user if questions arise.
