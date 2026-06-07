@@ -214,3 +214,95 @@ def test_full_kitchen_ticket_lifecycle() -> None:
     ready = service.mark_ready_for_pickup(ticket.id)
     assert ready is not None
     assert ready.status == KitchenTicketStatus.READY_FOR_PICKUP
+
+
+# ---------------------------------------------------------------------------
+# Task 4.1: Unit tests for accept_ticket / reject_ticket outbox behaviour
+# ---------------------------------------------------------------------------
+
+
+def test_accept_ticket_writes_outbox_event() -> None:
+    ticket, repository, _outbox, unit_of_work = _create_ticket()
+    outbox = FakeOutboxWriter()
+    service = KitchenTicketApplicationService(repository, outbox, unit_of_work)
+
+    result = service.accept_ticket(ticket.id)
+
+    assert result is not None
+    assert result.status == KitchenTicketStatus.ACCEPTED
+    assert len(outbox.events) == 1
+    assert outbox.events[0].event_type == "KitchenTicketAccepted"
+    assert outbox.events[0].aggregate_id == str(ticket.id)
+    assert outbox.events[0].payload["ticket_id"] == str(ticket.id)
+
+
+def test_accept_ticket_already_accepted_no_outbox_event() -> None:
+    ticket, repository, _outbox, unit_of_work = _create_ticket()
+    outbox = FakeOutboxWriter()
+    service = KitchenTicketApplicationService(repository, outbox, unit_of_work)
+    service.accept_ticket(ticket.id)  # first accept
+
+    outbox.events.clear()
+    result = service.accept_ticket(ticket.id)  # second accept (idempotent)
+
+    assert result is not None
+    assert result.status == KitchenTicketStatus.ACCEPTED
+    assert len(outbox.events) == 0
+
+
+def test_reject_ticket_transitions_to_cancelled() -> None:
+    ticket, repository, _outbox, unit_of_work = _create_ticket()
+    outbox = FakeOutboxWriter()
+    service = KitchenTicketApplicationService(repository, outbox, unit_of_work)
+
+    result = service.reject_ticket(ticket.id)
+
+    assert result is not None
+    assert result.status == KitchenTicketStatus.CANCELLED
+    assert len(outbox.events) == 1
+    assert outbox.events[0].event_type == "KitchenTicketRejected"
+    assert outbox.events[0].aggregate_id == str(ticket.id)
+    assert outbox.events[0].payload["ticket_id"] == str(ticket.id)
+
+
+def test_reject_ticket_already_cancelled_no_outbox_event() -> None:
+    ticket, repository, _outbox, unit_of_work = _create_ticket()
+    outbox = FakeOutboxWriter()
+    service = KitchenTicketApplicationService(repository, outbox, unit_of_work)
+    service.reject_ticket(ticket.id)  # first reject
+
+    outbox.events.clear()
+    result = service.reject_ticket(ticket.id)  # second reject (idempotent)
+
+    assert result is not None
+    assert result.status == KitchenTicketStatus.CANCELLED
+    assert len(outbox.events) == 0
+
+
+def test_reject_ticket_returns_none_for_unknown_ticket() -> None:
+    repository = FakeKitchenTicketRepository()
+    service = KitchenTicketApplicationService(repository, FakeOutboxWriter(), FakeUnitOfWork())
+
+    result = service.reject_ticket(uuid4())
+
+    assert result is None
+
+
+def test_reject_event_includes_rejection_reason() -> None:
+    ticket, repository, _outbox, unit_of_work = _create_ticket()
+    outbox = FakeOutboxWriter()
+    service = KitchenTicketApplicationService(repository, outbox, unit_of_work)
+
+    service.reject_ticket(ticket.id, rejection_reason="Out of stock")
+
+    assert outbox.events[0].payload["rejection_reason"] == "Out of stock"
+
+
+def test_reject_event_omits_rejection_reason_key() -> None:
+    ticket, repository, _outbox, unit_of_work = _create_ticket()
+    outbox = FakeOutboxWriter()
+    service = KitchenTicketApplicationService(repository, outbox, unit_of_work)
+
+    service.reject_ticket(ticket.id, rejection_reason=None)
+
+    assert "rejection_reason" not in outbox.events[0].payload

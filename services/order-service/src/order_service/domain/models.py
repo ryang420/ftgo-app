@@ -11,6 +11,7 @@ class OrderStatus(StrEnum):
     APPROVED = "APPROVED"
     REJECTED = "REJECTED"
     CANCELLED = "CANCELLED"
+    PREPARING = "PREPARING"
 
 
 class InvalidOrderStatusTransitionError(Exception):

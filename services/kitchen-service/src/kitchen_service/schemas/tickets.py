@@ -37,6 +37,10 @@ def to_line_item_read(line_item: KitchenTicketLineItem) -> KitchenTicketLineItem
     )
 
 
+class RejectTicketRequest(BaseModel):
+    rejection_reason: str | None = None
+
+
 def to_ticket_read(ticket: KitchenTicket) -> KitchenTicketRead:
     return KitchenTicketRead(
         id=ticket.id,
