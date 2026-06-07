@@ -1,3 +1,4 @@
+from datetime import datetime
 from decimal import Decimal
 from uuid import UUID
 
@@ -39,6 +40,7 @@ class OrderRead(BaseModel):
     currency: str
     total_amount: Decimal
     delivery_address: str
+    created_at: datetime | None = None
     line_items: list[OrderLineItemRead]
 
 
@@ -61,5 +63,6 @@ def to_order_read(order: Order) -> OrderRead:
         currency=order.currency,
         total_amount=order.total_amount,
         delivery_address=order.delivery_address,
+        created_at=order.created_at,
         line_items=[to_order_line_item_read(item) for item in order.line_items],
     )

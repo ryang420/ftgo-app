@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass, field
+from datetime import datetime
 from decimal import Decimal
 from enum import StrEnum
 
@@ -42,6 +43,7 @@ class Order:
     delivery_address: str
     line_items: list[OrderLineItem]
     status: OrderStatus = OrderStatus.PENDING
+    created_at: datetime | None = None
     id: uuid.UUID = field(default_factory=uuid.uuid4)
 
     def __post_init__(self) -> None:

@@ -10,6 +10,7 @@ def to_domain_order(record: OrderRecord) -> Order:
         status=record.status,
         currency=record.currency,
         delivery_address=record.delivery_address,
+        created_at=record.created_at,
         line_items=[
             OrderLineItem(
                 id=item.id,

@@ -109,7 +109,7 @@ export default function OrderStatusPage() {
             <div><span className="text-stone-500">Order ID:</span> <span className="text-stone-200 font-mono text-xs">{order.id}</span></div>
             <div><span className="text-stone-500">Restaurant:</span> <span className="text-stone-200">{order.restaurant_id}</span></div>
             <div><span className="text-stone-500">Total:</span> <span className="text-stone-200">{Number(order.total_amount).toFixed(2)} {order.currency}</span></div>
-            <div><span className="text-stone-500">Created:</span> <span className="text-stone-200">{new Date(order.created_at).toLocaleString()}</span></div>
+            <div><span className="text-stone-500">Created:</span> <span className="text-stone-200">{order.created_at ? new Date(order.created_at).toLocaleString() : "—"}</span></div>
             <div className="col-span-2"><span className="text-stone-500">Delivery:</span> <span className="text-stone-200">{order.delivery_address}</span></div>
           </div>
 
