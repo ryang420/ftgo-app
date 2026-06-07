@@ -68,10 +68,17 @@ class Order:
             raise InvalidOrderStatusTransitionError(self.status, OrderStatus.REJECTED)
         self.status = OrderStatus.REJECTED
 
+    def begin_preparing(self) -> None:
+        if self.status == OrderStatus.PREPARING:
+            return
+        if self.status not in {OrderStatus.APPROVED, OrderStatus.PREPARING}:
+            raise InvalidOrderStatusTransitionError(self.status, OrderStatus.PREPARING)
+        self.status = OrderStatus.PREPARING
+
     def cancel(self) -> None:
         if self.status == OrderStatus.CANCELLED:
             return
-        if self.status not in {OrderStatus.PENDING, OrderStatus.APPROVED}:
+        if self.status not in {OrderStatus.PENDING, OrderStatus.APPROVED, OrderStatus.PREPARING}:
             raise InvalidOrderStatusTransitionError(self.status, OrderStatus.CANCELLED)
         self.status = OrderStatus.CANCELLED
 

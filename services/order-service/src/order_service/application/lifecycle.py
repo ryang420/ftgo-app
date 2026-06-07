@@ -18,3 +18,21 @@ class OrderLifecycleApplicationService:
         saved_order = self.order_repository.save(order)
         self.unit_of_work.commit()
         return saved_order
+
+    def begin_preparing_order(self, order_id: UUID) -> Order | None:
+        order = self.order_repository.get_order(order_id)
+        if order is None:
+            return None
+        order.begin_preparing()
+        saved_order = self.order_repository.save(order)
+        self.unit_of_work.commit()
+        return saved_order
+
+    def cancel_order(self, order_id: UUID) -> Order | None:
+        order = self.order_repository.get_order(order_id)
+        if order is None:
+            return None
+        order.cancel()
+        saved_order = self.order_repository.save(order)
+        self.unit_of_work.commit()
+        return saved_order

@@ -287,3 +287,110 @@ async def test_create_order_rejects_empty_delivery_address() -> None:
     assert repository.orders == []
     assert outbox.events == []
     assert unit_of_work.committed is False
+
+
+# ---------------------------------------------------------------------------
+# Task 8.1: Unit tests for Order.begin_preparing / extended cancel
+# ---------------------------------------------------------------------------
+
+
+def _make_pending_order() -> Order:
+    return Order.create_pending(
+        consumer_id=uuid4(),
+        restaurant_id=10,
+        currency="USD",
+        delivery_address="123 Main St",
+        line_items=[
+            OrderLineItem(
+                menu_item_id=20,
+                name="Beef Noodles",
+                quantity=2,
+                unit_price=Decimal("28.00"),
+            )
+        ],
+    )
+
+
+def test_begin_preparing_transitions_from_approved() -> None:
+    repository = FakeOrderRepository()
+    unit_of_work = FakeUnitOfWork()
+    order = _make_pending_order()
+    order.approve()
+    repository.add(order)
+    service = OrderLifecycleApplicationService(repository, unit_of_work)
+
+    result = service.begin_preparing_order(order.id)
+
+    assert result is not None
+    assert result.status == OrderStatus.PREPARING
+    assert unit_of_work.committed is True
+
+
+def test_begin_preparing_is_idempotent() -> None:
+    repository = FakeOrderRepository()
+    unit_of_work = FakeUnitOfWork()
+    order = _make_pending_order()
+    order.approve()
+    order.begin_preparing()
+    repository.add(order)
+    service = OrderLifecycleApplicationService(repository, unit_of_work)
+
+    result = service.begin_preparing_order(order.id)
+
+    assert result is not None
+    assert result.status == OrderStatus.PREPARING
+
+
+def test_begin_preparing_raises_on_invalid_status() -> None:
+    from order_service.domain.models import InvalidOrderStatusTransitionError
+
+    # PENDING should raise
+    order = _make_pending_order()
+    with pytest.raises(InvalidOrderStatusTransitionError):
+        order.begin_preparing()
+
+    # REJECTED should raise
+    order2 = _make_pending_order()
+    order2.reject()
+    with pytest.raises(InvalidOrderStatusTransitionError):
+        order2.begin_preparing()
+
+    # CANCELLED should raise
+    order3 = _make_pending_order()
+    order3.cancel()
+    with pytest.raises(InvalidOrderStatusTransitionError):
+        order3.begin_preparing()
+
+
+def test_cancel_accepts_preparing_as_source() -> None:
+    repository = FakeOrderRepository()
+    unit_of_work = FakeUnitOfWork()
+    order = _make_pending_order()
+    order.approve()
+    order.begin_preparing()
+    repository.add(order)
+    service = OrderLifecycleApplicationService(repository, unit_of_work)
+
+    result = service.cancel_order(order.id)
+
+    assert result is not None
+    assert result.status == OrderStatus.CANCELLED
+    assert unit_of_work.committed is True
+
+
+def test_cancel_order_returns_none_for_unknown_order() -> None:
+    repository = FakeOrderRepository()
+    service = OrderLifecycleApplicationService(repository, FakeUnitOfWork())
+
+    result = service.cancel_order(uuid4())
+
+    assert result is None
+
+
+def test_begin_preparing_order_returns_none_for_unknown_order() -> None:
+    repository = FakeOrderRepository()
+    service = OrderLifecycleApplicationService(repository, FakeUnitOfWork())
+
+    result = service.begin_preparing_order(uuid4())
+
+    assert result is None
