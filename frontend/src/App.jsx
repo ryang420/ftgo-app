@@ -17,7 +17,7 @@ function App() {
   return (
     <>
       <NavBar />
-      {!session && <ConsumerSetupModal />}
+      {!session && <ConsumerSetupModal mode="banner" />}
       <Routes>
         <Route path="/orders/by-consumer" element={<ConsumerLookupPage />} />
         <Route path="/orders/:orderId" element={<OrderStatusPage />} />

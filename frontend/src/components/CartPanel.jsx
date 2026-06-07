@@ -6,7 +6,9 @@ export default function CartPanel({ cart, onRemove, onQuantityChange, onPlaceOrd
 
   return (
     <div className="rounded-[2rem] border border-white/10 bg-white/[0.035] p-6">
-      <h2 className="text-lg font-semibold text-stone-100 mb-4">Your Cart</h2>
+      <h2 className="text-lg font-semibold text-stone-100 mb-4">
+        Your Cart{cart.items.length > 0 ? ` (${cart.items.length})` : ""}
+      </h2>
 
       {empty ? (
         <p className="text-sm text-stone-500">No items yet</p>

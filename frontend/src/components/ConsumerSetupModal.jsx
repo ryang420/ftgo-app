@@ -21,12 +21,13 @@ function uniqueEmail(firstName, lastName) {
   return `${base || "consumer"}.${token}@example.com`;
 }
 
-export default function ConsumerSetupModal() {
+export default function ConsumerSetupModal({ mode = "modal" }) {
   const { setSession } = useConsumerSession();
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [dismissed, setDismissed] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -55,6 +56,55 @@ export default function ConsumerSetupModal() {
       setLoading(false);
     }
   };
+
+  if (mode === "banner" && dismissed) return null;
+
+  if (mode === "banner") {
+    return (
+      <div className="sticky top-0 z-40 border-b border-orange-400/20 bg-orange-600/10 backdrop-blur">
+        <div className="mx-auto flex max-w-5xl items-center gap-4 px-6 py-3">
+          <span className="text-sm text-orange-100">
+            🍜 Welcome! Enter your name to start ordering
+          </span>
+          <form onSubmit={handleSubmit} className="flex items-center gap-2 flex-1">
+            <input
+              type="text"
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value.slice(0, 100))}
+              placeholder="First name"
+              maxLength={100}
+              required
+              className="rounded-full border border-white/10 bg-white/[0.08] px-3 py-1.5 text-xs text-stone-100 placeholder-stone-500 outline-none focus:border-orange-400/50 w-28"
+            />
+            <input
+              type="text"
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value.slice(0, 100))}
+              placeholder="Last name"
+              maxLength={100}
+              required
+              className="rounded-full border border-white/10 bg-white/[0.08] px-3 py-1.5 text-xs text-stone-100 placeholder-stone-500 outline-none focus:border-orange-400/50 w-28"
+            />
+            <button
+              type="submit"
+              disabled={loading}
+              className="rounded-full bg-orange-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-orange-500 disabled:opacity-50 flex items-center gap-1"
+            >
+              {loading && <LoadingSpinner />}
+              {loading ? "..." : "Continue"}
+            </button>
+          </form>
+          <button
+            onClick={() => setDismissed(true)}
+            className="text-stone-400 hover:text-white transition text-sm"
+          >
+            ✕
+          </button>
+        </div>
+        {error && <div className="mx-auto max-w-5xl px-6 pb-2 text-xs text-rose-400">{error}</div>}
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">

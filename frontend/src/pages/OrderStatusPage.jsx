@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { getOrder } from "../lib/api.js";
 import StatusBadge from "../components/StatusBadge.jsx";
 import LoadingSpinner from "../components/LoadingSpinner.jsx";
@@ -127,6 +127,21 @@ export default function OrderStatusPage() {
           )}
         </div>
       )}
+
+      <div className="mt-6 flex gap-4">
+        <Link
+          to="/"
+          className="rounded-full border border-white/10 px-5 py-2 text-sm text-stone-300 hover:text-white hover:border-white/20 transition"
+        >
+          ← Back to restaurants
+        </Link>
+        <Link
+          to="/my-orders"
+          className="rounded-full border border-white/10 px-5 py-2 text-sm text-stone-300 hover:text-white hover:border-white/20 transition"
+        >
+          My Orders
+        </Link>
+      </div>
     </div>
   );
 }

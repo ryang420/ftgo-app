@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { placeOrder } from "../lib/api.js";
 import { cartTotal } from "../lib/cart.js";
+import { readAddress, writeAddress } from "../lib/address.js";
 import LoadingSpinner from "./LoadingSpinner.jsx";
 
 export default function OrderConfirmationDrawer({
@@ -11,7 +12,7 @@ export default function OrderConfirmationDrawer({
   onClose,
   onOrderPlaced,
 }) {
-  const [address, setAddress] = useState("");
+  const [address, setAddress] = useState(() => readAddress());
   const [addressError, setAddressError] = useState("");
   const [submitError, setSubmitError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -38,6 +39,7 @@ export default function OrderConfirmationDrawer({
           quantity: item.quantity,
         })),
       });
+      writeAddress(address.trim());
       onOrderPlaced(data.id);
     } catch (err) {
       setSubmitError(err.message);
