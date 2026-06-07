@@ -41,7 +41,7 @@ at `http://localhost:8000`.
 - **Kitchen_Service**: The backend microservice exposing kitchen ticket endpoints.
 - **KitchenTicketStatus**: The lifecycle state of a kitchen ticket. Values relevant to the frontend: `CREATE_PENDING`, `ACCEPTED`, `CANCELLED`.
 - **Vite_Proxy**: The Vite dev-server proxy that forwards `/restaurants`, `/orders`, `/consumers`, and `/kitchen` requests to the API Gateway.
-- **ConsumerSession**: Client-side storage (localStorage) holding the current consumer's `consumer_id` and optional display name across page reloads. A ConsumerSession is **valid** when it contains a non-empty `consumer_id` string that is a well-formed UUID.
+- **ConsumerSession**: Client-side storage (localStorage) holding the current consumer's `consumer_id` and display name across page reloads. A ConsumerSession is **valid** when it contains a non-empty `consumer_id` string that is a well-formed UUID.
 - **StatusBadge**: A coloured UI label component that renders an `OrderStatus` string with a consistent colour-coded style.
 - **DeliveryAddress**: A free-text string supplied by the consumer when placing an order.
 
@@ -57,24 +57,26 @@ so that my orders are associated with a stable `consumer_id` that persists acros
 #### Acceptance Criteria
 
 1. WHEN the Frontend loads and no `ConsumerSession` is stored in localStorage, THE Frontend SHALL
-   display a consumer setup form prompting for a display name (optional free-text, max 100
+   display a consumer setup form prompting for first name and last name (each max 100
    characters).
 2. WHEN the Frontend loads and localStorage contains a `ConsumerSession` key whose value is not
    a valid JSON object with a non-empty `consumer_id` UUID string, THE Frontend SHALL treat
    the session as absent, clear the malformed entry, and display the consumer setup form.
-3. WHEN the consumer submits the setup form, THE Frontend SHALL call `POST /consumers` with a
-   JSON body containing the `first_name` field set to the display name when provided; WHEN the
-   display name is empty, THE Frontend SHALL omit the `first_name` field from the request body
-   entirely. Upon a `201` response, THE Frontend SHALL persist the returned `consumer_id` and
-   display name into localStorage as the `ConsumerSession`.
-4. WHEN the Frontend loads and a valid `ConsumerSession` is present in localStorage, THE Frontend
+3. WHEN the consumer submits the setup form with non-empty first name and last name, THE Frontend
+   SHALL call `POST /consumers` with a JSON body compatible with `consumer-service`, including
+   non-empty `first_name`, non-empty `last_name`, and a generated unique `email`. Upon a `201`
+   response, THE Frontend SHALL persist the returned `consumer_id` and display name into
+   localStorage as the `ConsumerSession`.
+4. IF the consumer attempts to submit the setup form with a blank first name or blank last name,
+   THEN THE Frontend SHALL display an inline validation error and SHALL NOT call `POST /consumers`.
+5. WHEN the Frontend loads and a valid `ConsumerSession` is present in localStorage, THE Frontend
    SHALL skip the consumer setup form and proceed directly to the main application.
-5. IF `POST /consumers` returns a non-`2xx` response, THEN THE Frontend SHALL display an inline
+6. IF `POST /consumers` returns a non-`2xx` response, THEN THE Frontend SHALL display an inline
    error message below the submit button and keep the consumer setup form visible and
    submittable.
-6. THE Frontend SHALL provide a "Change consumer" control in the top navigation bar that clears
+7. THE Frontend SHALL provide a "Change consumer" control in the top navigation bar that clears
    the `ConsumerSession` from localStorage and returns the user to the consumer setup form.
-7. WHILE the `POST /consumers` request is in-flight, THE Frontend SHALL disable the submit
+8. WHILE the `POST /consumers` request is in-flight, THE Frontend SHALL disable the submit
    button and display a loading indicator within or adjacent to the button to prevent duplicate
    submissions.
 

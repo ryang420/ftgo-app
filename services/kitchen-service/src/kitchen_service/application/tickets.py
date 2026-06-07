@@ -4,6 +4,8 @@ from kitchen_service.application.commands import CreateKitchenTicketCommand
 from kitchen_service.application.outbox import (
     kitchen_ticket_accepted_event,
     kitchen_ticket_created_event,
+    kitchen_ticket_preparing_event,
+    kitchen_ticket_ready_for_pickup_event,
     kitchen_ticket_rejected_event,
 )
 from kitchen_service.application.ports import OutboxWriter, UnitOfWork
@@ -81,8 +83,11 @@ class KitchenTicketApplicationService:
         ticket = self.ticket_repository.get_by_id(ticket_id)
         if ticket is None:
             return None
+        if ticket.status == KitchenTicketStatus.PREPARING:
+            return ticket
         ticket.start_preparing()
         saved = self.ticket_repository.save(ticket)
+        self.outbox.add(kitchen_ticket_preparing_event(saved))
         self.unit_of_work.commit()
         return saved
 
@@ -90,7 +95,10 @@ class KitchenTicketApplicationService:
         ticket = self.ticket_repository.get_by_id(ticket_id)
         if ticket is None:
             return None
+        if ticket.status == KitchenTicketStatus.READY_FOR_PICKUP:
+            return ticket
         ticket.mark_ready_for_pickup()
         saved = self.ticket_repository.save(ticket)
+        self.outbox.add(kitchen_ticket_ready_for_pickup_event(saved))
         self.unit_of_work.commit()
         return saved

@@ -12,6 +12,7 @@ class OrderStatus(StrEnum):
     REJECTED = "REJECTED"
     CANCELLED = "CANCELLED"
     PREPARING = "PREPARING"
+    READY = "READY"
 
 
 class InvalidOrderStatusTransitionError(Exception):
@@ -67,6 +68,13 @@ class Order:
         if self.status != OrderStatus.PENDING:
             raise InvalidOrderStatusTransitionError(self.status, OrderStatus.REJECTED)
         self.status = OrderStatus.REJECTED
+
+    def mark_ready(self) -> None:
+        if self.status == OrderStatus.READY:
+            return
+        if self.status != OrderStatus.PREPARING:
+            raise InvalidOrderStatusTransitionError(self.status, OrderStatus.READY)
+        self.status = OrderStatus.READY
 
     def begin_preparing(self) -> None:
         if self.status == OrderStatus.PREPARING:

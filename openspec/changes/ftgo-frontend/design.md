@@ -229,7 +229,7 @@ Stored in `localStorage` under the key `"ftgo_consumer_session"`.
 ```ts
 interface ConsumerSession {
   consumer_id: string;  // RFC 4122 UUID
-  display_name: string; // may be empty string
+  display_name: string;
 }
 ```
 
@@ -239,6 +239,14 @@ Utility functions in `lib/session.js`:
 - `readSession()` → `ConsumerSession | null` — reads, validates, and returns session or null (clearing if malformed)
 - `writeSession(session)` → `void` — serialises to localStorage
 - `clearSession()` → `void` — removes the key
+
+### Consumer Setup Payload
+
+`consumer-service` requires `email`, non-empty `first_name`, and non-empty `last_name`.
+`ConsumerSetupModal` therefore collects first name and last name separately and generates a
+unique email before calling `createConsumer(data)`. The frontend validates both name fields
+before submitting so the backend does not receive `last_name: ""` or another invalid
+`ConsumerCreate` payload.
 
 ### Cart State
 

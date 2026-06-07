@@ -67,3 +67,31 @@ def kitchen_ticket_rejected_event(
         event_type="KitchenTicketRejected",
         payload=payload,
     )
+
+
+def kitchen_ticket_preparing_event(ticket: KitchenTicket) -> OutboxEvent:
+    return OutboxEvent(
+        aggregate_type="KitchenTicket",
+        aggregate_id=str(ticket.id),
+        event_type="KitchenTicketPreparing",
+        payload={
+            "ticket_id": str(ticket.id),
+            "order_id": str(ticket.order_id),
+            "restaurant_id": ticket.restaurant_id,
+            "status": ticket.status.value,
+        },
+    )
+
+
+def kitchen_ticket_ready_for_pickup_event(ticket: KitchenTicket) -> OutboxEvent:
+    return OutboxEvent(
+        aggregate_type="KitchenTicket",
+        aggregate_id=str(ticket.id),
+        event_type="KitchenTicketReadyForPickup",
+        payload={
+            "ticket_id": str(ticket.id),
+            "order_id": str(ticket.order_id),
+            "restaurant_id": ticket.restaurant_id,
+            "status": ticket.status.value,
+        },
+    )

@@ -8,8 +8,14 @@ The frontend SHALL create, validate, persist, and clear a consumer session using
 - **THEN** it displays the consumer setup form and clears malformed stored data
 
 #### Scenario: Create consumer session
-- **WHEN** the setup form is submitted successfully
-- **THEN** the frontend calls `POST /consumers`, stores the returned `consumer_id`, and continues to the main application
+- **WHEN** the setup form is submitted with non-empty first name and last name
+- **THEN** the frontend calls `POST /consumers` with non-empty `first_name`, non-empty `last_name`, and a generated unique `email`
+- **AND** stores the returned `consumer_id` and display name before continuing to the main application
+
+#### Scenario: Reject blank consumer name fields
+- **WHEN** the setup form is submitted with a blank first name or blank last name
+- **THEN** the frontend displays an inline validation error
+- **AND** does not call `POST /consumers`
 
 ### Requirement: Restaurant browsing with cart
 The frontend SHALL preserve restaurant browsing while adding menu item cart interactions for a single restaurant.

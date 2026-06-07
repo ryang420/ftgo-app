@@ -1,14 +1,22 @@
-import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import MenuItemCard from "../components/MenuItemCard.jsx";
+import CartPanel from "../components/CartPanel.jsx";
+import OrderConfirmationDrawer from "../components/OrderConfirmationDrawer.jsx";
+import useConsumerSession from "../hooks/useConsumerSession.js";
 import { getRestaurant, getRestaurantMenuItems } from "../lib/api.js";
+import { addItem, clearCart, removeItem, setQuantity } from "../lib/cart.js";
 
 function RestaurantDetailPage() {
   const { restaurantId } = useParams();
+  const navigate = useNavigate();
+  const { session } = useConsumerSession();
   const [restaurant, setRestaurant] = useState(null);
   const [menuItems, setMenuItems] = useState([]);
   const [status, setStatus] = useState("loading");
   const [errorMessage, setErrorMessage] = useState("");
+  const [cart, setCart] = useState(() => clearCart());
+  const [showDrawer, setShowDrawer] = useState(false);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -39,9 +47,27 @@ function RestaurantDetailPage() {
     }
 
     loadRestaurantDetail();
+    setCart(clearCart());
 
     return () => controller.abort();
   }, [restaurantId]);
+
+  const handleAddToCart = (item) => {
+    const cartItem = {
+      menu_item_id: String(item.id),
+      name: item.name,
+      unit_price: Number(item.price),
+    };
+    setCart((prev) => addItem(prev, cartItem));
+  };
+
+  const handleRemove = (menuItemId) => {
+    setCart((prev) => removeItem(prev, menuItemId));
+  };
+
+  const handleQuantityChange = (menuItemId, qty) => {
+    setCart((prev) => setQuantity(prev, menuItemId, qty));
+  };
 
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(251,146,60,0.22),_transparent_28%),linear-gradient(145deg,_#111111_0%,_#1c1917_48%,_#292524_100%)] px-5 py-6 text-sand sm:px-8 sm:py-8 lg:px-10">
@@ -73,10 +99,6 @@ function RestaurantDetailPage() {
           <section className="rounded-[2rem] border border-rose-300/20 bg-rose-500/10 p-6 text-sm leading-7 text-rose-100">
             <p className="font-medium">Unable to load restaurant detail.</p>
             <p className="mt-2">{errorMessage}</p>
-            <p className="mt-2 text-rose-100/80">
-              Expected endpoints: <code>/restaurants/{restaurantId}</code> and{" "}
-              <code>/restaurants/{restaurantId}/menu-items</code>
-            </p>
           </section>
         ) : null}
 
@@ -124,35 +146,60 @@ function RestaurantDetailPage() {
             </header>
 
             <section className="mt-8">
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between mb-6">
                 <div>
-                  <p className="text-sm uppercase tracking-[0.28em] text-orange-200/75">
-                    Menu
-                  </p>
-                  <h2 className="mt-2 font-display text-3xl font-semibold text-white">
-                    Available items
-                  </h2>
+                  <p className="text-sm uppercase tracking-[0.28em] text-orange-200/75">Menu</p>
+                  <h2 className="mt-2 font-display text-3xl font-semibold text-white">Available items</h2>
                 </div>
-                <p className="max-w-xl text-sm leading-7 text-stone-300">
-                  This section now reads from the dedicated menu endpoint instead of
-                  relying only on the restaurant list payload.
-                </p>
               </div>
 
-              {menuItems.length === 0 ? (
-                <div className="mt-6 rounded-[1.75rem] border border-white/10 bg-white/[0.045] p-6 text-sm leading-7 text-stone-200">
-                  This restaurant exists, but no menu items have been created yet.
+              <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
+                <div>
+                  {menuItems.length === 0 ? (
+                    <div className="rounded-[1.75rem] border border-white/10 bg-white/[0.045] p-6 text-sm leading-7 text-stone-200">
+                      No menu items available
+                    </div>
+                  ) : (
+                    <div className="grid gap-5 lg:grid-cols-1 xl:grid-cols-2">
+                      {menuItems.map((item) => (
+                        <MenuItemCard
+                          key={item.id}
+                          item={item}
+                          onAddToCart={handleAddToCart}
+                          sessionExists={!!session}
+                        />
+                      ))}
+                    </div>
+                  )}
                 </div>
-              ) : (
-                <div className="mt-6 grid gap-5 lg:grid-cols-2">
-                  {menuItems.map((item) => (
-                    <MenuItemCard key={item.id} item={item} />
-                  ))}
+
+                <div>
+                  <CartPanel
+                    cart={cart}
+                    onRemove={handleRemove}
+                    onQuantityChange={handleQuantityChange}
+                    onPlaceOrder={() => setShowDrawer(true)}
+                  />
                 </div>
-              )}
+              </div>
             </section>
           </>
         ) : null}
+
+        {showDrawer && session && (
+          <OrderConfirmationDrawer
+            cart={cart}
+            restaurantName={restaurant?.name || "Restaurant"}
+            consumerId={session.consumer_id}
+            restaurantId={restaurantId}
+            onClose={() => setShowDrawer(false)}
+            onOrderPlaced={(orderId) => {
+              setCart(clearCart());
+              setShowDrawer(false);
+              navigate(`/orders/${orderId}`);
+            }}
+          />
+        )}
       </div>
     </main>
   );

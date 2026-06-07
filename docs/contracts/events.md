@@ -130,3 +130,56 @@ Envelope (with rejection reason):
 ```
 
 When no `rejection_reason` is provided, the key is omitted from the payload entirely (not set to `null`).
+
+## KitchenTicketPreparing
+
+Published by `kitchen-service` when kitchen staff start preparing a ticket.
+
+- Exchange: `ftgo.events`
+- Routing key: `ftgo.KitchenTicket.KitchenTicketPreparing`
+- Delivery: at least once
+- Idempotency key for consumers: `message_id` or `payload.ticket_id`
+- Order-side idempotency key: `payload.order_id`
+
+Envelope:
+
+```json
+{
+  "event_type": "KitchenTicketPreparing",
+  "aggregate_type": "KitchenTicket",
+  "aggregate_id": "<ticket-id>",
+  "payload": {
+    "ticket_id": "<ticket-id>",
+    "order_id": "<order-id>",
+    "restaurant_id": 1,
+    "status": "PREPARING"
+  },
+  "occurred_at": "2026-06-07T12:00:00+00:00"
+}
+```
+
+## KitchenTicketReadyForPickup
+
+Published by `kitchen-service` when kitchen staff mark a ticket as ready for pickup.
+
+- Exchange: `ftgo.events`
+- Routing key: `ftgo.KitchenTicket.KitchenTicketReadyForPickup`
+- Delivery: at least once
+- Idempotency key for consumers: `message_id` or `payload.ticket_id`
+- Order-side idempotency key: `payload.order_id`
+
+Envelope:
+
+```json
+{
+  "event_type": "KitchenTicketReadyForPickup",
+  "aggregate_type": "KitchenTicket",
+  "aggregate_id": "<ticket-id>",
+  "payload": {
+    "ticket_id": "<ticket-id>",
+    "order_id": "<order-id>",
+    "restaurant_id": 1,
+    "status": "READY_FOR_PICKUP"
+  },
+  "occurred_at": "2026-06-07T12:00:00+00:00"
+}

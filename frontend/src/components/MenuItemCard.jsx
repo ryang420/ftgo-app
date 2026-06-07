@@ -11,7 +11,7 @@ function formatPrice(price) {
   }).format(amount);
 }
 
-function MenuItemCard({ item }) {
+export default function MenuItemCard({ item, onAddToCart, sessionExists = false }) {
   return (
     <article className="rounded-[1.5rem] border border-white/10 bg-white/[0.045] p-5 transition hover:border-orange-300/30 hover:bg-white/[0.07]">
       <div className="flex items-start justify-between gap-4">
@@ -27,8 +27,18 @@ function MenuItemCard({ item }) {
       <p className="mt-4 text-sm leading-7 text-stone-300">
         {item.description || "No description yet. This menu item is available through the restaurant service."}
       </p>
+
+      <button
+        onClick={() => onAddToCart?.(item)}
+        disabled={!sessionExists}
+        className={`mt-4 w-full rounded-full px-4 py-2 text-sm font-medium transition ${
+          sessionExists
+            ? "bg-orange-600 text-white hover:bg-orange-500"
+            : "bg-stone-800 text-stone-500 cursor-not-allowed"
+        }`}
+      >
+        Add to cart
+      </button>
     </article>
   );
 }
-
-export default MenuItemCard;

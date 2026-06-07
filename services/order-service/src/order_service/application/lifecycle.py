@@ -36,3 +36,12 @@ class OrderLifecycleApplicationService:
         saved_order = self.order_repository.save(order)
         self.unit_of_work.commit()
         return saved_order
+
+    def mark_ready_order(self, order_id: UUID) -> Order | None:
+        order = self.order_repository.get_order(order_id)
+        if order is None:
+            return None
+        order.mark_ready()
+        saved_order = self.order_repository.save(order)
+        self.unit_of_work.commit()
+        return saved_order

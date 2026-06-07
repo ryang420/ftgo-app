@@ -114,6 +114,74 @@ async def handle_kitchen_ticket_rejected(message: IncomingMessage) -> None:
             session.close()
 
 
+async def handle_kitchen_ticket_preparing(message: IncomingMessage) -> None:
+    async with message.process(requeue=False):
+        envelope = json.loads(message.body.decode())
+        payload = envelope["payload"]
+        order_id_str = payload.get("order_id")
+        if not order_id_str:
+            logger.error("KitchenTicketPreparing missing order_id: %s", envelope)
+            return
+        try:
+            order_id = UUID(order_id_str)
+        except ValueError:
+            logger.error("KitchenTicketPreparing has invalid order_id: %s", order_id_str)
+            return
+        session = SessionLocal()
+        try:
+            service = OrderLifecycleApplicationService(
+                order_repository=SqlAlchemyOrderRepository(session),
+                unit_of_work=SqlAlchemyUnitOfWork(session),
+            )
+            order = service.order_repository.get_order(order_id)
+            if order is None:
+                logger.warning("Order %s not found for KitchenTicketPreparing", order_id)
+                return
+            logger.info(
+                "Order %s is %s (KitchenTicketPreparing received)",
+                order.id,
+                order.status.value,
+            )
+        finally:
+            session.close()
+
+
+async def handle_kitchen_ticket_ready(message: IncomingMessage) -> None:
+    async with message.process(requeue=False):
+        envelope = json.loads(message.body.decode())
+        payload = envelope["payload"]
+        order_id_str = payload.get("order_id")
+        if not order_id_str:
+            logger.error("KitchenTicketReadyForPickup missing order_id: %s", envelope)
+            return
+        try:
+            order_id = UUID(order_id_str)
+        except ValueError:
+            logger.error(
+                "KitchenTicketReadyForPickup has invalid order_id: %s", order_id_str
+            )
+            return
+        session = SessionLocal()
+        try:
+            service = OrderLifecycleApplicationService(
+                order_repository=SqlAlchemyOrderRepository(session),
+                unit_of_work=SqlAlchemyUnitOfWork(session),
+            )
+            try:
+                order = service.mark_ready_order(order_id)
+            except InvalidOrderStatusTransitionError as exc:
+                logger.error("Cannot mark_ready order %s: %s", order_id, exc)
+                return
+            if order is None:
+                logger.warning(
+                    "Order %s not found for KitchenTicketReadyForPickup", order_id
+                )
+                return
+            logger.info("Order %s transitioned to %s", order.id, order.status.value)
+        finally:
+            session.close()
+
+
 async def consume() -> None:
     while running:
         try:
@@ -154,9 +222,29 @@ async def consume() -> None:
                 )
                 await queue_rejected.consume(handle_kitchen_ticket_rejected)
 
+                # KitchenTicketPreparing → ack (order stays PREPARING)
+                queue_preparing = await channel.declare_queue(
+                    "order.kitchen-ticket-preparing", durable=True
+                )
+                await queue_preparing.bind(
+                    exchange, routing_key="ftgo.KitchenTicket.KitchenTicketPreparing"
+                )
+                await queue_preparing.consume(handle_kitchen_ticket_preparing)
+
+                # KitchenTicketReadyForPickup → mark_ready order
+                queue_ready = await channel.declare_queue(
+                    "order.kitchen-ticket-ready", durable=True
+                )
+                await queue_ready.bind(
+                    exchange,
+                    routing_key="ftgo.KitchenTicket.KitchenTicketReadyForPickup",
+                )
+                await queue_ready.consume(handle_kitchen_ticket_ready)
+
                 logger.info(
                     "Order consumer started (KitchenTicketCreated, "
-                    "KitchenTicketAccepted, KitchenTicketRejected)"
+                    "KitchenTicketAccepted, KitchenTicketRejected, "
+                    "KitchenTicketPreparing, KitchenTicketReadyForPickup)"
                 )
 
                 while running:
