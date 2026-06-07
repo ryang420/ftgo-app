@@ -553,8 +553,8 @@ Generator strategy: build `Order` instances with `st.builds(Order, ...)`, drawin
 
 ### End-to-end
 
-Extend `make demo-place-order` (or add a new `make demo-accept-ticket` target) that:
-1. Runs the existing place-order demo to create an `APPROVED` order and `CREATE_PENDING` ticket.
+Extend the root pytest e2e flow, for example `tests/e2e/test_place_order_flow.py`, with a test that:
+1. Uses the existing place-order flow to create an `APPROVED` order and `CREATE_PENDING` ticket.
 2. Calls `POST /kitchen/tickets/{id}/accept`.
 3. Polls `GET /orders/{id}` until status is `PREPARING`.
 

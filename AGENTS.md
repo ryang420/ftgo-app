@@ -15,7 +15,7 @@
 - Start local Postgres and RabbitMQ with `make infra-up`.
 - Run core migrations with `make migrate`.
 - Start the core local stack with `make dev-up`; stop it with `make dev-down`.
-- Verify the order flow with `make demo-place-order` or `make e2e-place-order`.
+- Verify service behavior with pytest, for example `uv run pytest tests/e2e`.
 - Run individual services with the existing `make run-*` targets.
 
 ## Code Conventions
@@ -48,4 +48,4 @@
 - Prefer `uv run pytest` for Python tests.
 - Prefer `uv run ruff check` for linting.
 - Add focused tests near the service being changed when touching application or domain behavior.
-- For cross-service behavior, prefer the existing demo/e2e scripts over ad hoc manual checks.
+- For cross-service behavior, prefer root-level `tests/e2e` pytest tests over ad hoc manual checks.

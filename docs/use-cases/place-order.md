@@ -83,10 +83,10 @@ sequenceDiagram
 
 ## Example
 
-If the local stack is running, execute the full flow with:
+If the local stack is running, verify the full flow with:
 
 ```bash
-make demo-place-order
+uv run pytest tests/e2e/test_place_order_flow.py
 ```
 
 Or run the steps manually:
@@ -161,7 +161,7 @@ curl -s http://localhost:8000/kitchen/tickets | python -m json.tool
 To verify the whole flow:
 
 ```bash
-make e2e-place-order
+uv run pytest tests/e2e/test_place_order_flow.py
 ```
 
 ## Order Status Model

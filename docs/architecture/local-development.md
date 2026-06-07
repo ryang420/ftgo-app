@@ -72,12 +72,11 @@ The API gateway forwards:
 With the local stack running:
 
 ```bash
-make e2e-place-order
+uv run pytest tests/e2e
 ```
 
 This creates an order, waits for `kitchen-service` to create a ticket, and
-checks that the `OrderCreated` and `KitchenTicketCreated` outbox messages were
-published and that the order transitioned to `APPROVED`.
+checks that the order transitioned to `APPROVED`.
 
 ## Reset Infrastructure
 

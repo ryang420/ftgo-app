@@ -26,8 +26,7 @@ FTGO is a Python microservices learning monorepo implementing the food-delivery 
 - `make dev-down` — stop everything
 - `make run-consumer` / `make run-restaurant` / `make run-order` / `make run-api-gateway` — start individual services
 - `make run-order-relay` — start only the order outbox relay
-- `make demo-place-order` — create consumer + restaurant + order via curl
-- `make e2e-place-order` — verify full order-to-kitchen flow end-to-end
+- `uv run pytest tests/e2e` — verify cross-service end-to-end flows
 
 ### Frontend
 
@@ -110,4 +109,4 @@ States: `PENDING` → `APPROVED` | `REJECTED` | `CANCELLED`. Transitions are met
 - Follow the DDD layering from `order-service`: domain models are plain Python dataclasses, repository/port abstractions use `Protocol`, ORM models live in `infrastructure/db/models.py`
 - Use the transactional outbox pattern for cross-service events
 - Document API and event contracts under `docs/contracts/` when behavior changes
-- Prefer `make e2e-place-order` for verifying cross-service flows over ad hoc manual checks
+- Prefer root-level `tests/e2e` pytest tests for verifying cross-service flows over ad hoc manual checks
