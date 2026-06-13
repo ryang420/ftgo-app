@@ -61,9 +61,9 @@ export default function ConsumerSetupModal({ mode = "modal" }) {
 
   if (mode === "banner") {
     return (
-      <div className="sticky top-0 z-40 border-b border-orange-400/20 bg-orange-600/10 backdrop-blur">
-        <div className="mx-auto flex max-w-5xl items-center gap-4 px-6 py-3">
-          <span className="text-sm text-orange-100">
+      <div className="sticky top-0 z-40 border-b border-orange-200 bg-orange-50/95 backdrop-blur">
+        <div className="relative mx-auto flex max-w-5xl flex-wrap items-center gap-4 px-6 py-3 pr-14">
+          <span className="text-sm text-orange-800">
             🍜 Welcome! Enter your name to start ordering
           </span>
           <form onSubmit={handleSubmit} className="flex items-center gap-2 flex-1">
@@ -74,7 +74,7 @@ export default function ConsumerSetupModal({ mode = "modal" }) {
               placeholder="First name"
               maxLength={100}
               required
-              className="rounded-full border border-white/10 bg-white/[0.08] px-3 py-1.5 text-xs text-stone-100 placeholder-stone-500 outline-none focus:border-orange-400/50 w-28"
+              className="w-28 rounded-full border border-orange-200 bg-white px-3 py-1.5 text-xs text-stone-900 placeholder-stone-400 outline-none focus:border-orange-500"
             />
             <input
               type="text"
@@ -83,7 +83,7 @@ export default function ConsumerSetupModal({ mode = "modal" }) {
               placeholder="Last name"
               maxLength={100}
               required
-              className="rounded-full border border-white/10 bg-white/[0.08] px-3 py-1.5 text-xs text-stone-100 placeholder-stone-500 outline-none focus:border-orange-400/50 w-28"
+              className="w-28 rounded-full border border-orange-200 bg-white px-3 py-1.5 text-xs text-stone-900 placeholder-stone-400 outline-none focus:border-orange-500"
             />
             <button
               type="submit"
@@ -96,26 +96,26 @@ export default function ConsumerSetupModal({ mode = "modal" }) {
           </form>
           <button
             onClick={() => setDismissed(true)}
-            className="text-stone-400 hover:text-white transition text-sm"
+            className="absolute right-6 top-4 text-sm text-stone-500 transition hover:text-stone-950"
           >
             ✕
           </button>
         </div>
-        {error && <div className="mx-auto max-w-5xl px-6 pb-2 text-xs text-rose-400">{error}</div>}
+        {error && <div className="mx-auto max-w-5xl px-6 pb-2 text-xs text-rose-700">{error}</div>}
       </div>
     );
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-      <div className="w-full max-w-md rounded-[2rem] border border-white/10 bg-stone-900 p-8 shadow-2xl">
-        <h2 className="text-xl font-semibold text-stone-100">Welcome to FTGO</h2>
-        <p className="mt-2 text-sm text-stone-400">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/35 backdrop-blur-sm">
+      <div className="w-full max-w-md rounded-[2rem] border border-orange-100 bg-white p-8 shadow-2xl">
+        <h2 className="text-xl font-semibold text-stone-950">Welcome to FTGO</h2>
+        <p className="mt-2 text-sm text-stone-600">
           Enter your name to get started.
         </p>
         <form onSubmit={handleSubmit} className="mt-6 space-y-4" noValidate>
           <label className="block">
-            <span className="mb-2 block text-xs font-medium text-stone-300">First name</span>
+            <span className="mb-2 block text-xs font-medium text-stone-700">First name</span>
             <input
               type="text"
               value={firstName}
@@ -123,11 +123,11 @@ export default function ConsumerSetupModal({ mode = "modal" }) {
               placeholder="First name"
               maxLength={100}
               required
-              className="w-full rounded-full border border-white/10 bg-white/[0.045] px-5 py-3 text-sm text-stone-100 placeholder-stone-500 outline-none focus:border-orange-400/50"
+              className="w-full rounded-full border border-stone-200 bg-white px-5 py-3 text-sm text-stone-900 placeholder-stone-400 outline-none focus:border-orange-500"
             />
           </label>
           <label className="block">
-            <span className="mb-2 block text-xs font-medium text-stone-300">Last name</span>
+            <span className="mb-2 block text-xs font-medium text-stone-700">Last name</span>
             <input
               type="text"
               value={lastName}
@@ -135,10 +135,10 @@ export default function ConsumerSetupModal({ mode = "modal" }) {
               placeholder="Last name"
               maxLength={100}
               required
-              className="w-full rounded-full border border-white/10 bg-white/[0.045] px-5 py-3 text-sm text-stone-100 placeholder-stone-500 outline-none focus:border-orange-400/50"
+              className="w-full rounded-full border border-stone-200 bg-white px-5 py-3 text-sm text-stone-900 placeholder-stone-400 outline-none focus:border-orange-500"
             />
           </label>
-          {error && <p className="text-sm text-rose-400">{error}</p>}
+          {error && <p className="text-sm text-rose-700">{error}</p>}
           <button
             type="submit"
             disabled={loading}

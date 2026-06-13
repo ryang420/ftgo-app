@@ -87,25 +87,25 @@ export default function KitchenDashboardPage() {
 
   return (
     <div className="mx-auto max-w-4xl px-6 py-8">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-semibold text-stone-100">Kitchen Dashboard</h1>
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-2xl font-semibold text-stone-950">Kitchen Dashboard</h1>
         <button
           onClick={fetchTickets}
-          className="rounded-full border border-white/10 px-4 py-2 text-xs text-stone-300 hover:text-white hover:border-white/20 transition"
+          className="rounded-full border border-stone-200 bg-white px-4 py-2 text-xs text-stone-700 transition hover:border-orange-200 hover:text-stone-950"
         >
           Refresh
         </button>
       </div>
 
       {globalError && (
-        <div className="mb-4 rounded-xl border border-rose-300/20 bg-rose-500/10 p-3 text-sm text-rose-100 flex justify-between items-center">
+        <div className="mb-4 flex items-center justify-between rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800">
           <span>{globalError}</span>
-          <button onClick={() => setGlobalError("")} className="text-rose-300 hover:text-rose-100">✕</button>
+          <button onClick={() => setGlobalError("")} className="text-rose-700 hover:text-rose-950">✕</button>
         </div>
       )}
 
       <section className="mb-8">
-        <h2 className="text-lg font-medium text-stone-200 mb-3">Actionable</h2>
+        <h2 className="mb-3 text-lg font-medium text-stone-800">Actionable</h2>
         {actionableTickets.length === 0 ? (
           <p className="text-sm text-stone-500">No tickets at the moment</p>
         ) : (
@@ -113,10 +113,10 @@ export default function KitchenDashboardPage() {
             {actionableTickets.map((t) => (
               <div
                 key={t.id}
-                className="rounded-[1.5rem] border border-white/10 bg-white/[0.035] p-4"
+                className="rounded-[1.5rem] border border-orange-100 bg-white p-4 shadow-sm"
               >
                 <div className="flex flex-wrap items-center gap-3 text-sm">
-                  <span className="font-mono text-xs text-stone-400">{t.id?.slice(0, 8)}</span>
+                  <span className="font-mono text-xs text-stone-500">{t.id?.slice(0, 8)}</span>
                   <span className="text-stone-500">Order {t.order_id?.slice(0, 8)}</span>
                   <StatusBadge status={t.status} />
                   <span className="text-stone-500">Restaurant {t.restaurant_id}</span>
@@ -160,7 +160,7 @@ export default function KitchenDashboardPage() {
                   </div>
                 </div>
                 {rowErrors[t.id] && (
-                  <p className="mt-2 text-xs text-rose-400">{rowErrors[t.id]}</p>
+                  <p className="mt-2 text-xs text-rose-700">{rowErrors[t.id]}</p>
                 )}
               </div>
             ))}
@@ -169,7 +169,7 @@ export default function KitchenDashboardPage() {
       </section>
 
       <section>
-        <h2 className="text-lg font-medium text-stone-200 mb-3">Completed</h2>
+        <h2 className="mb-3 text-lg font-medium text-stone-800">Completed</h2>
         {readOnlyTickets.length === 0 ? (
           <p className="text-sm text-stone-500">No tickets</p>
         ) : (
@@ -177,7 +177,7 @@ export default function KitchenDashboardPage() {
             {readOnlyTickets.map((t) => (
               <div
                 key={t.id}
-                className="rounded-[1.5rem] border border-white/10 bg-white/[0.025] p-4"
+                className="rounded-[1.5rem] border border-stone-200 bg-stone-50 p-4"
               >
                 <div className="flex flex-wrap items-center gap-3 text-sm">
                   <span className="font-mono text-xs text-stone-500">{t.id?.slice(0, 8)}</span>

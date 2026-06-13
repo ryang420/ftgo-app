@@ -6,12 +6,12 @@ export default function NavBar() {
 
   const linkClass = ({ isActive }) =>
     isActive
-      ? "border-b border-orange-400 text-orange-300"
-      : "text-stone-300 hover:text-white";
+      ? "border-b border-orange-500 text-orange-700"
+      : "text-stone-600 hover:text-stone-950";
 
   return (
-    <nav className="sticky top-0 z-40 border-b border-white/10 bg-stone-950/80 backdrop-blur">
-      <div className="mx-auto flex max-w-5xl items-center gap-6 px-6 py-3">
+    <nav className="sticky top-0 z-40 border-b border-orange-100 bg-white/85 shadow-sm backdrop-blur">
+      <div className="mx-auto flex max-w-5xl flex-wrap items-center gap-6 px-6 py-3">
         <NavLink to="/" className={linkClass} end>
           Restaurant List
         </NavLink>
@@ -32,7 +32,7 @@ export default function NavBar() {
           )}
           <button
             onClick={clearSession}
-            className="rounded-full border border-white/10 px-3 py-1 text-xs text-stone-400 hover:text-white hover:border-white/20 transition"
+            className="rounded-full border border-stone-200 bg-white px-3 py-1 text-xs text-stone-600 transition hover:border-orange-200 hover:text-stone-950"
           >
             Change consumer
           </button>

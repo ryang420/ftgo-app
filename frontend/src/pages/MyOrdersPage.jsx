@@ -32,7 +32,7 @@ export default function MyOrdersPage() {
   if (!session) {
     return (
       <div className="mx-auto max-w-4xl px-6 py-12">
-        <p className="text-center text-stone-400">Redirecting...</p>
+        <p className="text-center text-stone-500">Redirecting...</p>
       </div>
     );
   }
@@ -57,7 +57,7 @@ export default function MyOrdersPage() {
 
   return (
     <div className="mx-auto max-w-4xl px-6 py-8">
-      <h1 className="text-2xl font-semibold text-stone-100 mb-6">My Orders</h1>
+      <h1 className="mb-6 text-2xl font-semibold text-stone-950">My Orders</h1>
       {orders.length === 0 ? (
         <p className="text-sm text-stone-500">No orders yet</p>
       ) : (

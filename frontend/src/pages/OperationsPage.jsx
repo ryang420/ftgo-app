@@ -31,9 +31,9 @@ export default function OperationsPage() {
 
   return (
     <div className="mx-auto max-w-4xl px-6 py-8">
-      <h1 className="text-2xl font-semibold text-stone-100 mb-6">Operations</h1>
+      <h1 className="mb-6 text-2xl font-semibold text-stone-950">Operations</h1>
 
-      <div className="flex gap-2 mb-6">
+      <div className="mb-6 flex flex-wrap gap-2">
         {STATUSES.map((s) => (
           <button
             key={s}
@@ -41,7 +41,7 @@ export default function OperationsPage() {
             className={`rounded-full px-4 py-1.5 text-xs font-medium transition ${
               selectedStatus === s
                 ? "bg-orange-600 text-white"
-                : "border border-white/10 text-stone-300 hover:text-white"
+                : "border border-stone-200 bg-white text-stone-700 hover:border-orange-200 hover:text-stone-950"
             }`}
           >
             {s}

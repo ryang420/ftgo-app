@@ -48,44 +48,44 @@ export default function OrderConfirmationDrawer({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-      <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-[2rem] border border-white/10 bg-stone-900 p-8 shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/35 backdrop-blur-sm">
+      <div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-[2rem] border border-orange-100 bg-white p-8 shadow-2xl">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-semibold text-stone-100">Confirm Order</h2>
-          <button onClick={onClose} className="text-stone-500 hover:text-white transition text-lg">✕</button>
+          <h2 className="text-xl font-semibold text-stone-950">Confirm Order</h2>
+          <button onClick={onClose} className="text-lg text-stone-500 transition hover:text-stone-950">✕</button>
         </div>
 
-        <div className="mb-4 p-4 rounded-[1.25rem] bg-white/[0.045] text-sm">
-          <p className="text-stone-400">Restaurant: <span className="text-stone-200">{restaurantName}</span></p>
-          <p className="text-stone-400 mt-2">Total items: <span className="text-stone-200">{cart.items.length}</span></p>
+        <div className="mb-4 rounded-[1.25rem] border border-orange-100 bg-orange-50/70 p-4 text-sm">
+          <p className="text-stone-600">Restaurant: <span className="text-stone-950">{restaurantName}</span></p>
+          <p className="mt-2 text-stone-600">Total items: <span className="text-stone-950">{cart.items.length}</span></p>
           <div className="mt-2 space-y-1">
             {cart.items.map((item) => (
-              <p key={item.menu_item_id} className="text-stone-500 text-xs">
+              <p key={item.menu_item_id} className="text-xs text-stone-500">
                 {item.name} × {item.quantity}
               </p>
             ))}
           </div>
-          <p className="mt-3 text-stone-400">
-            Total: <span className="text-stone-200 font-medium">${cartTotal(cart).toFixed(2)}</span>
+          <p className="mt-3 text-stone-600">
+            Total: <span className="font-medium text-stone-950">${cartTotal(cart).toFixed(2)}</span>
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="text-sm text-stone-400">Delivery address</label>
+            <label className="text-sm text-stone-700">Delivery address</label>
             <input
               type="text"
               value={address}
               onChange={(e) => setAddress(e.target.value.slice(0, 500))}
               maxLength={500}
               placeholder="Enter your delivery address"
-              className="mt-1 w-full rounded-full border border-white/10 bg-white/[0.045] px-5 py-3 text-sm text-stone-100 placeholder-stone-500 outline-none focus:border-orange-400/50"
+              className="mt-1 w-full rounded-full border border-stone-200 bg-white px-5 py-3 text-sm text-stone-900 placeholder-stone-400 outline-none focus:border-orange-500"
             />
-            {addressError && <p className="mt-1 text-xs text-rose-400">{addressError}</p>}
+            {addressError && <p className="mt-1 text-xs text-rose-700">{addressError}</p>}
           </div>
 
           {submitError && (
-            <p className="text-sm text-rose-400">{submitError}</p>
+            <p className="text-sm text-rose-700">{submitError}</p>
           )}
 
           <button

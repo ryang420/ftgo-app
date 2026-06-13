@@ -36,44 +36,43 @@ function RestaurantListPage() {
   }, []);
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(251,146,60,0.24),_transparent_24%),linear-gradient(135deg,_#111111_0%,_#1c1917_52%,_#292524_100%)] px-5 py-6 text-sand sm:px-8 sm:py-8 lg:px-10">
+    <main className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(251,146,60,0.18),_transparent_26%),linear-gradient(135deg,_#fff7ed_0%,_#ffffff_48%,_#f8fafc_100%)] px-5 py-6 text-sand sm:px-8 sm:py-8 lg:px-10">
       <div className="mx-auto max-w-7xl">
-        <header className="overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.05] px-6 py-8 shadow-card backdrop-blur sm:px-8 lg:px-10">
+        <header className="overflow-hidden rounded-[2rem] border border-orange-100 bg-white/85 px-6 py-8 shadow-card backdrop-blur sm:px-8 lg:px-10">
           <div className="grid gap-8 lg:grid-cols-[1.15fr_0.85fr] lg:items-end">
             <div className="space-y-5">
-              <p className="text-sm uppercase tracking-[0.35em] text-orange-300/80">
+              <p className="text-sm uppercase tracking-[0.35em] text-orange-700">
                 FTGO Marketplace
               </p>
               <h1 className="font-display text-4xl font-semibold leading-tight sm:text-5xl lg:text-6xl">
-                Start with restaurant discovery, then grow into menu and order flows.
+                Find dinner fast from FTGO restaurant partners.
               </h1>
-              <p className="max-w-2xl text-base leading-8 text-stone-300 sm:text-lg">
-                This page is the best first slice for the current backend shape because
-                the restaurant domain already exposes list and detail endpoints that map
-                naturally to a browsable customer experience.
+              <p className="max-w-2xl text-base leading-8 text-stone-600 sm:text-lg">
+                Browse local menus, build a cart from a single restaurant, and follow
+                each order from checkout to kitchen preparation in one streamlined demo.
               </p>
             </div>
 
             <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-1">
-              <div className="rounded-[1.5rem] border border-white/10 bg-black/15 p-5">
-                <p className="text-xs uppercase tracking-[0.25em] text-orange-200/80">
-                  First API target
+              <div className="rounded-[1.5rem] border border-orange-100 bg-orange-50/70 p-5">
+                <p className="text-xs uppercase tracking-[0.25em] text-orange-700">
+                  Browse
                 </p>
-                <p className="mt-3 text-lg font-medium text-white">GET /restaurants</p>
+                <p className="mt-3 text-lg font-medium text-stone-950">Explore partner restaurants</p>
               </div>
-              <div className="rounded-[1.5rem] border border-white/10 bg-black/15 p-5">
-                <p className="text-xs uppercase tracking-[0.25em] text-orange-200/80">
-                  Next route
+              <div className="rounded-[1.5rem] border border-orange-100 bg-orange-50/70 p-5">
+                <p className="text-xs uppercase tracking-[0.25em] text-orange-700">
+                  Order
                 </p>
-                <p className="mt-3 text-lg font-medium text-white">
-                  /restaurants/:restaurantId
+                <p className="mt-3 text-lg font-medium text-stone-950">
+                  Add menu favorites to your cart
                 </p>
               </div>
-              <div className="rounded-[1.5rem] border border-white/10 bg-black/15 p-5">
-                <p className="text-xs uppercase tracking-[0.25em] text-orange-200/80">
-                  After that
+              <div className="rounded-[1.5rem] border border-orange-100 bg-orange-50/70 p-5">
+                <p className="text-xs uppercase tracking-[0.25em] text-orange-700">
+                  Track
                 </p>
-                <p className="mt-3 text-lg font-medium text-white">Create order flow</p>
+                <p className="mt-3 text-lg font-medium text-stone-950">Watch kitchen status updates</p>
               </div>
             </div>
           </div>
@@ -82,16 +81,16 @@ function RestaurantListPage() {
         <section className="mt-8">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <p className="text-sm uppercase tracking-[0.28em] text-orange-200/75">
+              <p className="text-sm uppercase tracking-[0.28em] text-orange-700">
                 Restaurants
               </p>
-              <h2 className="mt-2 font-display text-3xl font-semibold text-white">
+              <h2 className="mt-2 font-display text-3xl font-semibold text-stone-950">
                 Featured delivery partners
               </h2>
             </div>
-            <p className="max-w-xl text-sm leading-7 text-stone-300">
-              The cards below now read from the live backend route exposed through the
-              API gateway. This gives us a real first slice for restaurant discovery.
+            <p className="max-w-xl text-sm leading-7 text-stone-600">
+              Choose a restaurant to view its current menu, then create an order when
+              you are ready to check out.
             </p>
           </div>
 
@@ -100,26 +99,26 @@ function RestaurantListPage() {
               {Array.from({ length: 3 }).map((_, index) => (
                 <div
                   key={index}
-                  className="h-72 animate-pulse rounded-[1.75rem] border border-white/10 bg-white/[0.045]"
+                  className="h-72 animate-pulse rounded-[1.75rem] border border-orange-100 bg-orange-100/70"
                 />
               ))}
             </div>
           ) : null}
 
           {status === "error" ? (
-            <div className="mt-6 rounded-[1.75rem] border border-rose-300/20 bg-rose-500/10 p-6 text-sm leading-7 text-rose-100">
+            <div className="mt-6 rounded-[1.75rem] border border-rose-200 bg-rose-50 p-6 text-sm leading-7 text-rose-800">
               <p className="font-medium">Unable to load restaurants.</p>
               <p className="mt-2">{errorMessage}</p>
-              <p className="mt-2 text-rose-100/80">
+              <p className="mt-2 text-rose-700">
                 Expected gateway route: <code>http://localhost:8000/restaurants</code>
               </p>
             </div>
           ) : null}
 
           {status === "success" && restaurants.length === 0 ? (
-            <div className="mt-6 rounded-[1.75rem] border border-white/10 bg-white/[0.045] p-6 text-sm leading-7 text-stone-200">
-              No restaurants have been created yet. Seed a few records in
-              `restaurant-service` and this page will populate automatically.
+            <div className="mt-6 rounded-[1.75rem] border border-orange-100 bg-white p-6 text-sm leading-7 text-stone-700 shadow-sm">
+              No restaurants are available right now. Please check back after the
+              marketplace has been refreshed.
             </div>
           ) : null}
 

@@ -5,8 +5,8 @@ export default function CartPanel({ cart, onRemove, onQuantityChange, onPlaceOrd
   const empty = isCartEmpty(cart);
 
   return (
-    <div className="rounded-[2rem] border border-white/10 bg-white/[0.035] p-6">
-      <h2 className="text-lg font-semibold text-stone-100 mb-4">
+    <div className="rounded-[2rem] border border-orange-100 bg-white p-6 shadow-card">
+      <h2 className="mb-4 text-lg font-semibold text-stone-950">
         Your Cart{cart.items.length > 0 ? ` (${cart.items.length})` : ""}
       </h2>
 
@@ -25,9 +25,9 @@ export default function CartPanel({ cart, onRemove, onQuantityChange, onPlaceOrd
         </div>
       )}
 
-      <div className="mt-4 pt-4 border-t border-white/10 flex justify-between text-sm">
-        <span className="text-stone-400">Total</span>
-        <span className="text-stone-200 font-medium">${cartTotal(cart).toFixed(2)}</span>
+      <div className="mt-4 flex justify-between border-t border-orange-100 pt-4 text-sm">
+        <span className="text-stone-600">Total</span>
+        <span className="font-medium text-stone-950">${cartTotal(cart).toFixed(2)}</span>
       </div>
 
       <button
@@ -38,7 +38,7 @@ export default function CartPanel({ cart, onRemove, onQuantityChange, onPlaceOrd
         Place order
       </button>
       {empty && (
-        <p className="mt-2 text-xs text-stone-500 text-center">
+        <p className="mt-2 text-center text-xs text-stone-500">
           Cart is empty — add at least one item
         </p>
       )}

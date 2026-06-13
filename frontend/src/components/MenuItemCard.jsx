@@ -15,15 +15,15 @@ export default function MenuItemCard({ item, onAddToCart, sessionExists = false,
   const hasCartQuantity = cartQuantity > 0;
 
   return (
-    <article className="rounded-[1.5rem] border border-white/10 bg-white/[0.045] p-5 transition hover:border-orange-300/30 hover:bg-white/[0.07]">
+    <article className="rounded-[1.5rem] border border-orange-100 bg-white p-5 shadow-sm transition hover:border-orange-200 hover:shadow-card">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h3 className="font-display text-2xl font-semibold text-white">{item.name}</h3>
+          <h3 className="font-display text-2xl font-semibold text-stone-950">{item.name}</h3>
           {item.description && (
-            <p className="mt-2 text-sm leading-7 text-stone-300">{item.description}</p>
+            <p className="mt-2 text-sm leading-7 text-stone-600">{item.description}</p>
           )}
         </div>
-        <span className="rounded-full border border-orange-300/20 bg-orange-400/10 px-3 py-1 text-sm font-medium text-orange-100">
+        <span className="rounded-full border border-orange-200 bg-orange-50 px-3 py-1 text-sm font-medium text-orange-700">
           {formatPrice(item.price)}
         </span>
       </div>
@@ -35,25 +35,25 @@ export default function MenuItemCard({ item, onAddToCart, sessionExists = false,
           className={`mt-4 w-full rounded-full px-4 py-2 text-sm font-medium transition ${
             sessionExists
               ? "bg-orange-600 text-white hover:bg-orange-500"
-              : "bg-stone-800 text-stone-500 cursor-not-allowed"
+              : "bg-stone-100 text-stone-400 cursor-not-allowed"
           }`}
         >
           Add to cart
         </button>
       ) : (
-        <div className="mt-4 flex items-center justify-center gap-3 rounded-full bg-green-600/20 px-4 py-2 transition-colors">
+        <div className="mt-4 flex items-center justify-center gap-3 rounded-full bg-green-100 px-4 py-2 text-green-800 transition-colors">
           <button
             onClick={() => onAddToCart?.({ ...item, _decrement: true, _currentQty: cartQuantity })}
-            className="text-white hover:text-orange-300 transition w-6 h-6 flex items-center justify-center"
+            className="flex h-6 w-6 items-center justify-center transition hover:text-green-950"
           >
             −
           </button>
-          <span className="text-sm font-medium text-white tabular-nums min-w-[1.5rem] text-center">
+          <span className="min-w-[1.5rem] text-center text-sm font-medium tabular-nums">
             {cartQuantity}
           </span>
           <button
             onClick={() => onAddToCart?.(item)}
-            className="text-white hover:text-orange-300 transition w-6 h-6 flex items-center justify-center"
+            className="flex h-6 w-6 items-center justify-center transition hover:text-green-950"
           >
             +
           </button>

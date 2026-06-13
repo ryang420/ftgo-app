@@ -36,15 +36,15 @@ export default function ConsumerLookupPage() {
 
   return (
     <div className="mx-auto max-w-4xl px-6 py-8">
-      <h1 className="text-2xl font-semibold text-stone-100 mb-6">Consumer Lookup</h1>
+      <h1 className="mb-6 text-2xl font-semibold text-stone-950">Consumer Lookup</h1>
 
-      <form onSubmit={handleSubmit} className="mb-6 flex gap-3">
+      <form onSubmit={handleSubmit} className="mb-6 flex flex-wrap gap-3">
         <input
           type="text"
           value={uuid}
           onChange={(e) => setUuid(e.target.value)}
           placeholder="Consumer UUID"
-          className="flex-1 rounded-full border border-white/10 bg-white/[0.045] px-5 py-3 text-sm text-stone-100 placeholder-stone-500 outline-none focus:border-orange-400/50"
+          className="min-w-0 flex-1 rounded-full border border-stone-200 bg-white px-5 py-3 text-sm text-stone-900 placeholder-stone-400 outline-none focus:border-orange-500"
         />
         <button
           type="submit"
@@ -55,7 +55,7 @@ export default function ConsumerLookupPage() {
         </button>
       </form>
 
-      {inputError && <p className="mb-4 text-sm text-rose-400">{inputError}</p>}
+      {inputError && <p className="mb-4 text-sm text-rose-700">{inputError}</p>}
 
       {status === "loading" && (
         <div className="text-center py-12"><LoadingSpinner /></div>

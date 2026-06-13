@@ -25,7 +25,7 @@ export default function OrderRow({ order, onClick, showConsumerId = false }) {
   return (
     <div
       onClick={onClick}
-      className="cursor-pointer rounded-[1.75rem] border border-white/10 bg-white/[0.035] p-5 transition hover:bg-white/[0.06]"
+      className="cursor-pointer rounded-[1.75rem] border border-orange-100 bg-white p-5 shadow-sm transition hover:border-orange-200 hover:shadow-card"
       role="button"
       tabIndex={0}
       onKeyDown={(e) => { if (e.key === "Enter") onClick(); }}
@@ -33,19 +33,19 @@ export default function OrderRow({ order, onClick, showConsumerId = false }) {
       <div className="flex flex-wrap items-center gap-3 text-sm">
         <button
           onClick={handleCopy}
-          className="font-mono text-xs text-stone-400 hover:text-stone-200 transition"
+          className="font-mono text-xs text-stone-500 transition hover:text-stone-950"
           title="Copy order ID"
         >
           {truncateId(order.id)}
         </button>
         <StatusBadge status={order.status} />
-        <span className="text-stone-200 tabular-nums">
+        <span className="tabular-nums text-stone-800">
           {formatAmount(order.total_amount, order.currency)}
         </span>
-        <span className="text-stone-500 text-xs">
+        <span className="text-xs text-stone-500">
           {showConsumerId ? `Consumer ${truncateId(order.consumer_id)}` : `Restaurant ${order.restaurant_id}`}
         </span>
-        <span className="ml-auto text-stone-500 text-xs">
+        <span className="ml-auto text-xs text-stone-500">
           {formatOrderDate(order.created_at)}
         </span>
       </div>

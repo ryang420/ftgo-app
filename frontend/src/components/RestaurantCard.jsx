@@ -4,23 +4,22 @@ function RestaurantCard({ restaurant }) {
   const menuItemCount = restaurant.menu_items.length;
 
   return (
-    <article className="group overflow-hidden rounded-[1.75rem] border border-white/10 bg-white/[0.045] p-5 shadow-card transition duration-300 hover:-translate-y-1 hover:border-orange-300/30 hover:bg-white/[0.08]">
+    <article className="group overflow-hidden rounded-[1.75rem] border border-orange-100 bg-white p-5 shadow-card transition duration-300 hover:-translate-y-1 hover:border-orange-200">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-xs uppercase tracking-[0.28em] text-orange-200/75">
+          <p className="text-xs uppercase tracking-[0.28em] text-orange-700">
             {restaurant.cuisine}
           </p>
           <h2 className="mt-3 font-display text-2xl font-semibold text-sand">
             {restaurant.name}
           </h2>
-          <p className="mt-2 text-sm text-stone-400">/{restaurant.slug}</p>
         </div>
-        <span className="rounded-full border border-orange-300/20 bg-orange-400/10 px-3 py-1 text-xs font-medium text-orange-100">
+        <span className="rounded-full border border-orange-200 bg-orange-50 px-3 py-1 text-xs font-medium text-orange-700">
           {menuItemCount} items
         </span>
       </div>
 
-      <p className="mt-4 text-sm leading-7 text-stone-300">
+      <p className="mt-4 text-sm leading-7 text-stone-600">
         {menuItemCount > 0
           ? `Includes ${restaurant.menu_items
               .slice(0, 3)
@@ -33,21 +32,20 @@ function RestaurantCard({ restaurant }) {
         {[restaurant.cuisine, `${menuItemCount} menu items`].map((tag) => (
           <span
             key={tag}
-            className="rounded-full border border-white/10 bg-black/15 px-3 py-1 text-xs text-stone-200"
+            className="rounded-full border border-stone-200 bg-stone-50 px-3 py-1 text-xs text-stone-600"
           >
             {tag}
           </span>
         ))}
       </div>
 
-      <div className="mt-8 flex items-center justify-between text-sm text-stone-300">
-        <div className="space-y-1">
-          <p>Restaurant ID: {restaurant.id}</p>
-          <p>Backend source: api-gateway /restaurants</p>
-        </div>
+      <div className="mt-8 flex items-center justify-between gap-4 text-sm text-stone-600">
+        <p className="max-w-[12rem] text-stone-500">
+          View today&apos;s menu and start a fresh cart for this restaurant.
+        </p>
         <Link
           to={`/restaurants/${restaurant.id}`}
-          className="rounded-full bg-orange-500 px-4 py-2 font-medium text-white transition group-hover:bg-orange-400"
+          className="shrink-0 rounded-full bg-orange-500 px-4 py-2 font-medium text-white transition group-hover:bg-orange-400"
         >
           View menu
         </Link>

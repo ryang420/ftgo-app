@@ -19,7 +19,7 @@ export default defineConfig({
         target: "http://localhost:8000",
         changeOrigin: true,
       },
-      "/kitchen": {
+      "/kitchen/tickets": {
         target: "http://localhost:8000",
         changeOrigin: true,
       },
