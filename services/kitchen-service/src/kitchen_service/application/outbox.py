@@ -21,6 +21,7 @@ def kitchen_ticket_created_event(ticket: KitchenTicket) -> OutboxEvent:
             "ticket_id": str(ticket.id),
             "order_id": str(ticket.order_id),
             "restaurant_id": ticket.restaurant_id,
+            "delivery_address": ticket.delivery_address,
             "status": ticket.status.value,
             "line_items": [
                 {
@@ -92,6 +93,7 @@ def kitchen_ticket_ready_for_pickup_event(ticket: KitchenTicket) -> OutboxEvent:
             "ticket_id": str(ticket.id),
             "order_id": str(ticket.order_id),
             "restaurant_id": ticket.restaurant_id,
+            "delivery_address": ticket.delivery_address,
             "status": ticket.status.value,
         },
     )

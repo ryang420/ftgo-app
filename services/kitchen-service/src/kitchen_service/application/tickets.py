@@ -39,6 +39,7 @@ class KitchenTicketApplicationService:
         ticket = KitchenTicket.create_pending(
             order_id=command.order_id,
             restaurant_id=command.restaurant_id,
+            delivery_address=command.delivery_address,
             line_items=[
                 KitchenTicketLineItem(
                     menu_item_id=item.menu_item_id,

@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { getOrdersByConsumer } from "../lib/api.js";
 import OrderRow from "../components/OrderRow.jsx";
-import LoadingSpinner from "../components/LoadingSpinner.jsx";
+import SkeletonBlock from "../components/SkeletonBlock.jsx";
 import ErrorMessage from "../components/ErrorMessage.jsx";
+import EmptyState from "../components/EmptyState.jsx";
 import { useNavigate } from "react-router-dom";
 
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export default function ConsumerLookupPage() {
   const [uuid, setUuid] = useState("");
@@ -35,8 +37,10 @@ export default function ConsumerLookupPage() {
   };
 
   return (
-    <div className="mx-auto max-w-4xl px-6 py-8">
-      <h1 className="mb-6 text-2xl font-semibold text-stone-950">Consumer Lookup</h1>
+    <main className="mx-auto max-w-4xl px-4 py-8 sm:px-6">
+      <h1 className="mb-6 text-2xl font-semibold text-stone-950">
+        Consumer Lookup
+      </h1>
 
       <form onSubmit={handleSubmit} className="mb-6 flex flex-wrap gap-3">
         <input
@@ -57,14 +61,30 @@ export default function ConsumerLookupPage() {
 
       {inputError && <p className="mb-4 text-sm text-rose-700">{inputError}</p>}
 
-      {status === "loading" && (
-        <div className="text-center py-12"><LoadingSpinner /></div>
+      {status === "idle" && (
+        <EmptyState
+          title="Look up consumer orders"
+          message="Enter a consumer UUID to view their order history."
+        />
       )}
 
-      {status === "error" && <ErrorMessage message={errorMsg} />}
+      {status === "loading" && (
+        <div className="space-y-3">
+          <SkeletonBlock className="h-16 w-full" />
+          <SkeletonBlock className="h-16 w-full" />
+          <SkeletonBlock className="h-16 w-full" />
+        </div>
+      )}
+
+      {status === "error" && (
+        <ErrorMessage message={errorMsg} />
+      )}
 
       {status === "success" && orders.length === 0 && (
-        <p className="text-sm text-stone-500">No orders found for this consumer</p>
+        <EmptyState
+          title="No orders found"
+          message="This consumer has no orders yet."
+        />
       )}
 
       {status === "success" && orders.length > 0 && (
@@ -78,6 +98,6 @@ export default function ConsumerLookupPage() {
           ))}
         </div>
       )}
-    </div>
+    </main>
   );
 }

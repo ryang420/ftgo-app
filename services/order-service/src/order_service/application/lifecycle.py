@@ -45,3 +45,30 @@ class OrderLifecycleApplicationService:
         saved_order = self.order_repository.save(order)
         self.unit_of_work.commit()
         return saved_order
+
+    def mark_delivery_assigned_order(self, order_id: UUID) -> Order | None:
+        order = self.order_repository.get_order(order_id)
+        if order is None:
+            return None
+        order.mark_delivery_assigned()
+        saved_order = self.order_repository.save(order)
+        self.unit_of_work.commit()
+        return saved_order
+
+    def mark_out_for_delivery_order(self, order_id: UUID) -> Order | None:
+        order = self.order_repository.get_order(order_id)
+        if order is None:
+            return None
+        order.mark_out_for_delivery()
+        saved_order = self.order_repository.save(order)
+        self.unit_of_work.commit()
+        return saved_order
+
+    def mark_delivered_order(self, order_id: UUID) -> Order | None:
+        order = self.order_repository.get_order(order_id)
+        if order is None:
+            return None
+        order.mark_delivered()
+        saved_order = self.order_repository.save(order)
+        self.unit_of_work.commit()
+        return saved_order

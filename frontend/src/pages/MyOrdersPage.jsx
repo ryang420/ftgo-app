@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { getOrdersByConsumer } from "../lib/api.js";
 import useConsumerSession from "../hooks/useConsumerSession.js";
 import OrderRow from "../components/OrderRow.jsx";
 import SkeletonBlock from "../components/SkeletonBlock.jsx";
 import ErrorMessage from "../components/ErrorMessage.jsx";
+import EmptyState from "../components/EmptyState.jsx";
 
 export default function MyOrdersPage() {
   const { session } = useConsumerSession();
@@ -27,40 +28,62 @@ export default function MyOrdersPage() {
     }
   };
 
-  useEffect(() => { fetchOrders(); }, [session]);
+  useEffect(() => {
+    fetchOrders();
+  }, [session]);
 
   if (!session) {
     return (
-      <div className="mx-auto max-w-4xl px-6 py-12">
-        <p className="text-center text-stone-500">Redirecting...</p>
-      </div>
-    );
-  }
-
-  if (status === "loading") {
-    return (
-      <div className="mx-auto max-w-4xl px-6 py-8 space-y-3">
-        <SkeletonBlock className="h-8 w-48" />
-        <SkeletonBlock className="h-16 w-full" />
-        <SkeletonBlock className="h-16 w-full" />
-      </div>
-    );
-  }
-
-  if (status === "error") {
-    return (
-      <div className="mx-auto max-w-4xl px-6 py-8">
-        <ErrorMessage message={errorMsg} onRetry={fetchOrders} />
-      </div>
+      <main className="mx-auto max-w-4xl px-4 py-12 sm:px-6">
+        <EmptyState
+          title="No consumer session"
+          message="Please set up a consumer identity to view your orders."
+          action={
+            <Link
+              to="/"
+              className="inline-flex rounded-full bg-orange-600 px-5 py-2 text-sm font-medium text-white hover:bg-orange-500 transition"
+            >
+              Go to restaurants
+            </Link>
+          }
+        />
+      </main>
     );
   }
 
   return (
-    <div className="mx-auto max-w-4xl px-6 py-8">
+    <main className="mx-auto max-w-4xl px-4 py-8 sm:px-6">
       <h1 className="mb-6 text-2xl font-semibold text-stone-950">My Orders</h1>
-      {orders.length === 0 ? (
-        <p className="text-sm text-stone-500">No orders yet</p>
-      ) : (
+
+      {status === "loading" && (
+        <div className="space-y-3">
+          <SkeletonBlock className="h-8 w-48" />
+          <SkeletonBlock className="h-16 w-full" />
+          <SkeletonBlock className="h-16 w-full" />
+          <SkeletonBlock className="h-16 w-full" />
+        </div>
+      )}
+
+      {status === "error" && (
+        <ErrorMessage message={errorMsg} onRetry={fetchOrders} />
+      )}
+
+      {status === "success" && orders.length === 0 && (
+        <EmptyState
+          title="No orders yet"
+          message="Place your first order from the restaurant list to see it here."
+          action={
+            <Link
+              to="/"
+              className="inline-flex rounded-full bg-orange-600 px-5 py-2 text-sm font-medium text-white hover:bg-orange-500 transition"
+            >
+              Browse restaurants
+            </Link>
+          }
+        />
+      )}
+
+      {status === "success" && orders.length > 0 && (
         <div className="space-y-3">
           {orders.map((o) => (
             <OrderRow
@@ -71,6 +94,6 @@ export default function MyOrdersPage() {
           ))}
         </div>
       )}
-    </div>
+    </main>
   );
 }

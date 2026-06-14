@@ -23,6 +23,16 @@ settings = OrderServiceSettings()
 running = True
 
 
+def extract_order_id(envelope: dict[str, object], *, event_type: str) -> UUID:
+    try:
+        payload = envelope["payload"]
+        if not isinstance(payload, dict):
+            raise ValueError("payload must be an object")
+        return UUID(str(payload["order_id"]))
+    except (KeyError, TypeError, ValueError) as exc:
+        raise ValueError(f"{event_type} has missing or invalid order_id") from exc
+
+
 async def handle_message(message: IncomingMessage) -> None:
     async with message.process(requeue=True):
         envelope = json.loads(message.body.decode())
@@ -182,6 +192,114 @@ async def handle_kitchen_ticket_ready(message: IncomingMessage) -> None:
             session.close()
 
 
+async def handle_delivery_created(message: IncomingMessage) -> None:
+    async with message.process(requeue=False):
+        envelope = json.loads(message.body.decode())
+        try:
+            order_id = extract_order_id(envelope, event_type="DeliveryCreated")
+        except ValueError as exc:
+            logger.error("%s: %s", exc, envelope)
+            return
+        session = SessionLocal()
+        try:
+            service = OrderLifecycleApplicationService(
+                order_repository=SqlAlchemyOrderRepository(session),
+                unit_of_work=SqlAlchemyUnitOfWork(session),
+            )
+            order = service.order_repository.get_order(order_id)
+            if order is None:
+                logger.warning("Order %s not found for DeliveryCreated", order_id)
+                return
+            logger.info(
+                "Delivery created for order %s; order remains %s",
+                order.id,
+                order.status.value,
+            )
+        finally:
+            session.close()
+
+
+async def handle_delivery_assigned(message: IncomingMessage) -> None:
+    async with message.process(requeue=False):
+        envelope = json.loads(message.body.decode())
+        try:
+            order_id = extract_order_id(envelope, event_type="DeliveryAssigned")
+        except ValueError as exc:
+            logger.error("%s: %s", exc, envelope)
+            return
+        session = SessionLocal()
+        try:
+            service = OrderLifecycleApplicationService(
+                order_repository=SqlAlchemyOrderRepository(session),
+                unit_of_work=SqlAlchemyUnitOfWork(session),
+            )
+            try:
+                order = service.mark_delivery_assigned_order(order_id)
+            except InvalidOrderStatusTransitionError as exc:
+                logger.error("Cannot mark_delivery_assigned order %s: %s", order_id, exc)
+                return
+            if order is None:
+                logger.warning("Order %s not found for DeliveryAssigned", order_id)
+                return
+            logger.info("Order %s transitioned to %s", order.id, order.status.value)
+        finally:
+            session.close()
+
+
+async def handle_delivery_picked_up(message: IncomingMessage) -> None:
+    async with message.process(requeue=False):
+        envelope = json.loads(message.body.decode())
+        try:
+            order_id = extract_order_id(envelope, event_type="DeliveryPickedUp")
+        except ValueError as exc:
+            logger.error("%s: %s", exc, envelope)
+            return
+        session = SessionLocal()
+        try:
+            service = OrderLifecycleApplicationService(
+                order_repository=SqlAlchemyOrderRepository(session),
+                unit_of_work=SqlAlchemyUnitOfWork(session),
+            )
+            try:
+                order = service.mark_out_for_delivery_order(order_id)
+            except InvalidOrderStatusTransitionError as exc:
+                logger.error("Cannot mark_out_for_delivery order %s: %s", order_id, exc)
+                return
+            if order is None:
+                logger.warning("Order %s not found for DeliveryPickedUp", order_id)
+                return
+            logger.info("Order %s transitioned to %s", order.id, order.status.value)
+        finally:
+            session.close()
+
+
+async def handle_delivery_delivered(message: IncomingMessage) -> None:
+    async with message.process(requeue=False):
+        envelope = json.loads(message.body.decode())
+        try:
+            order_id = extract_order_id(envelope, event_type="DeliveryDelivered")
+        except ValueError as exc:
+            logger.error("%s: %s", exc, envelope)
+            return
+        session = SessionLocal()
+        try:
+            service = OrderLifecycleApplicationService(
+                order_repository=SqlAlchemyOrderRepository(session),
+                unit_of_work=SqlAlchemyUnitOfWork(session),
+            )
+            try:
+                order = service.mark_delivered_order(order_id)
+            except InvalidOrderStatusTransitionError as exc:
+                logger.error("Cannot mark_delivered order %s: %s", order_id, exc)
+                return
+            if order is None:
+                logger.warning("Order %s not found for DeliveryDelivered", order_id)
+                return
+            logger.info("Order %s transitioned to %s", order.id, order.status.value)
+        finally:
+            session.close()
+
+
 async def consume() -> None:
     while running:
         try:
@@ -241,10 +359,52 @@ async def consume() -> None:
                 )
                 await queue_ready.consume(handle_kitchen_ticket_ready)
 
+                # DeliveryCreated → delivery requested; order remains READY
+                queue_delivery_created = await channel.declare_queue(
+                    "order.delivery-created", durable=True
+                )
+                await queue_delivery_created.bind(
+                    exchange,
+                    routing_key="ftgo.Delivery.DeliveryCreated",
+                )
+                await queue_delivery_created.consume(handle_delivery_created)
+
+                # DeliveryAssigned → mark delivery assigned
+                queue_delivery_assigned = await channel.declare_queue(
+                    "order.delivery-assigned", durable=True
+                )
+                await queue_delivery_assigned.bind(
+                    exchange,
+                    routing_key="ftgo.Delivery.DeliveryAssigned",
+                )
+                await queue_delivery_assigned.consume(handle_delivery_assigned)
+
+                # DeliveryPickedUp → mark out for delivery
+                queue_delivery_picked_up = await channel.declare_queue(
+                    "order.delivery-picked-up", durable=True
+                )
+                await queue_delivery_picked_up.bind(
+                    exchange,
+                    routing_key="ftgo.Delivery.DeliveryPickedUp",
+                )
+                await queue_delivery_picked_up.consume(handle_delivery_picked_up)
+
+                # DeliveryDelivered → mark delivered
+                queue_delivery_delivered = await channel.declare_queue(
+                    "order.delivery-delivered", durable=True
+                )
+                await queue_delivery_delivered.bind(
+                    exchange,
+                    routing_key="ftgo.Delivery.DeliveryDelivered",
+                )
+                await queue_delivery_delivered.consume(handle_delivery_delivered)
+
                 logger.info(
                     "Order consumer started (KitchenTicketCreated, "
                     "KitchenTicketAccepted, KitchenTicketRejected, "
-                    "KitchenTicketPreparing, KitchenTicketReadyForPickup)"
+                    "KitchenTicketPreparing, KitchenTicketReadyForPickup, "
+                    "DeliveryCreated, DeliveryAssigned, DeliveryPickedUp, "
+                    "DeliveryDelivered)"
                 )
 
                 while running:

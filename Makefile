@@ -1,6 +1,6 @@
 COMPOSE_FILE := deploy/docker-compose/docker-compose.yml
 
-.PHONY: help sync infra-up infra-down infra-reset migrate migrate-consumer migrate-restaurant migrate-order migrate-kitchen dev-up dev-down run-api-gateway run-consumer run-restaurant run-order run-order-relay
+.PHONY: help sync infra-up infra-down infra-reset migrate migrate-consumer migrate-restaurant migrate-order migrate-kitchen migrate-delivery dev-up dev-down run-api-gateway run-consumer run-restaurant run-order run-order-relay run-delivery run-delivery-relay
 
 help:
 	@echo "FTGO local development commands"
@@ -15,6 +15,7 @@ help:
 	@echo "  make run-consumer      Start consumer-service on port 8001"
 	@echo "  make run-restaurant    Start restaurant-service on port 8002"
 	@echo "  make run-order         Start order-service on port 8003"
+	@echo "  make run-delivery      Start delivery-service on port 8005"
 	@echo "  make run-api-gateway   Start api-gateway on port 8000"
 
 sync:
@@ -29,7 +30,7 @@ infra-down:
 infra-reset:
 	docker compose -f $(COMPOSE_FILE) down -v
 
-migrate: migrate-consumer migrate-restaurant migrate-order migrate-kitchen
+migrate: migrate-consumer migrate-restaurant migrate-order migrate-kitchen migrate-delivery
 
 migrate-consumer:
 	cd services/consumer-service && uv run --package consumer-service alembic -c alembic.ini upgrade head
@@ -42,6 +43,9 @@ migrate-order:
 
 migrate-kitchen:
 	cd services/kitchen-service && uv run --package kitchen-service alembic -c alembic.ini upgrade head
+
+migrate-delivery:
+	cd services/delivery-service && uv run --package delivery-service alembic -c alembic.ini upgrade head
 
 dev-up:
 	./scripts/dev-up.sh
@@ -60,6 +64,12 @@ run-order:
 
 run-order-relay:
 	uv run --package order-service python services/order-service/src/order_service/relay.py
+
+run-delivery:
+	uv run uvicorn delivery_service.main:app --port 8005
+
+run-delivery-relay:
+	uv run --package delivery-service python services/delivery-service/src/delivery_service/relay.py
 
 run-api-gateway:
 	uv run uvicorn api_gateway.main:app --port 8000

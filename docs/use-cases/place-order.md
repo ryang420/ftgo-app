@@ -15,6 +15,11 @@ This is the first end-to-end FTGO use case.
 9. `kitchen-service` consumes `OrderCreated` and creates a kitchen ticket idempotently.
 10. `kitchen-service` records and publishes `KitchenTicketCreated`.
 11. `order-service` consumes `KitchenTicketCreated` and transitions the order to `APPROVED`.
+12. Kitchen staff accept, prepare, and mark the ticket ready for pickup.
+13. `order-service` consumes kitchen decision events and transitions the order through `PREPARING` to `READY`.
+14. `delivery-service` consumes `KitchenTicketReadyForPickup` and creates a delivery idempotently.
+15. Delivery staff assign a courier, mark the order picked up, and mark it delivered.
+16. `order-service` consumes delivery lifecycle events and transitions the order through `DELIVERY_ASSIGNED`, `OUT_FOR_DELIVERY`, and `DELIVERED`.
 
 ## Sequence
 
@@ -158,6 +163,19 @@ After the event is published and consumed, the kitchen ticket can be queried:
 curl -s http://localhost:8000/kitchen/tickets | python -m json.tool
 ```
 
+After the kitchen ticket is ready, delivery records can be queried and advanced:
+
+```bash
+curl -s http://localhost:8000/deliveries | python -m json.tool
+
+curl -s -X POST http://localhost:8000/deliveries/<delivery-id>/assign \
+  -H 'content-type: application/json' \
+  -d '{"courier_id": "courier-001"}'
+
+curl -s -X POST http://localhost:8000/deliveries/<delivery-id>/pickup
+curl -s -X POST http://localhost:8000/deliveries/<delivery-id>/deliver
+```
+
 To verify the whole flow:
 
 ```bash
@@ -174,11 +192,17 @@ Current states:
 
 - `PENDING`: order was accepted and is waiting for downstream progress.
 - `APPROVED`: kitchen ticket was created and the order can continue.
+- `PREPARING`: kitchen accepted the ticket and is preparing the food.
+- `READY`: kitchen marked the order ready for delivery handoff.
+- `DELIVERY_ASSIGNED`: a courier has been assigned.
+- `OUT_FOR_DELIVERY`: the courier has picked up the order.
+- `DELIVERED`: the order has reached the customer.
 - `REJECTED`: order cannot proceed.
 - `CANCELLED`: order was cancelled before completion.
 
 State transitions are implemented on the `Order` domain model, for example
-`approve()`, `reject()`, and `cancel()`. Repeated events are treated
+`approve()`, `mark_delivery_assigned()`, `mark_out_for_delivery()`,
+`mark_delivered()`, `reject()`, and `cancel()`. Repeated events are treated
 idempotently where safe, such as approving an already approved order.
 
 Future states should be added by extending the domain state machine first, then

@@ -6,8 +6,8 @@ Properties 1-6
 
 from uuid import UUID
 
-from hypothesis import given, settings, strategies as st
-
+from hypothesis import given, settings
+from hypothesis import strategies as st
 from kitchen_service.application.outbox import (
     OutboxEvent,
     kitchen_ticket_accepted_event,
@@ -32,10 +32,13 @@ line_item_st = st.builds(
     quantity=st.integers(min_value=1, max_value=100),
 )
 
+delivery_address_st = st.text(min_size=1, max_size=100).filter(lambda value: value.strip() != "")
+
 ticket_st = st.builds(
     KitchenTicket,
     order_id=st.uuids(),
     restaurant_id=st.integers(min_value=1, max_value=10_000),
+    delivery_address=delivery_address_st,
     line_items=st.lists(line_item_st, min_size=1, max_size=5),
     status=st.sampled_from(KitchenTicketStatus),
 )
@@ -45,18 +48,23 @@ ticket_create_pending_st = st.builds(
     KitchenTicket,
     order_id=st.uuids(),
     restaurant_id=st.integers(min_value=1, max_value=10_000),
+    delivery_address=delivery_address_st,
     line_items=st.lists(line_item_st, min_size=1, max_size=5),
     status=st.just(KitchenTicketStatus.CREATE_PENDING),
 )
 
 # Statuses that are invalid sources for accept (not CREATE_PENDING, not ACCEPTED)
 _invalid_for_accept = [
-    s for s in KitchenTicketStatus if s not in {KitchenTicketStatus.CREATE_PENDING, KitchenTicketStatus.ACCEPTED}
+    s
+    for s in KitchenTicketStatus
+    if s not in {KitchenTicketStatus.CREATE_PENDING, KitchenTicketStatus.ACCEPTED}
 ]
 
 # Statuses that are invalid sources for reject (not CREATE_PENDING, not CANCELLED)
 _invalid_for_reject = [
-    s for s in KitchenTicketStatus if s not in {KitchenTicketStatus.CREATE_PENDING, KitchenTicketStatus.CANCELLED}
+    s
+    for s in KitchenTicketStatus
+    if s not in {KitchenTicketStatus.CREATE_PENDING, KitchenTicketStatus.CANCELLED}
 ]
 
 # Strategy: ticket in a status that is invalid for accept
@@ -64,6 +72,7 @@ ticket_invalid_for_accept_st = st.builds(
     KitchenTicket,
     order_id=st.uuids(),
     restaurant_id=st.integers(min_value=1, max_value=10_000),
+    delivery_address=delivery_address_st,
     line_items=st.lists(line_item_st, min_size=1, max_size=5),
     status=st.sampled_from(_invalid_for_accept) if _invalid_for_accept else st.none(),
 )
@@ -73,6 +82,7 @@ ticket_invalid_for_reject_st = st.builds(
     KitchenTicket,
     order_id=st.uuids(),
     restaurant_id=st.integers(min_value=1, max_value=10_000),
+    delivery_address=delivery_address_st,
     line_items=st.lists(line_item_st, min_size=1, max_size=5),
     status=st.sampled_from(_invalid_for_reject) if _invalid_for_reject else st.none(),
 )
@@ -82,6 +92,7 @@ ticket_accepted_st = st.builds(
     KitchenTicket,
     order_id=st.uuids(),
     restaurant_id=st.integers(min_value=1, max_value=10_000),
+    delivery_address=delivery_address_st,
     line_items=st.lists(line_item_st, min_size=1, max_size=5),
     status=st.just(KitchenTicketStatus.ACCEPTED),
 )
@@ -91,6 +102,7 @@ ticket_cancelled_st = st.builds(
     KitchenTicket,
     order_id=st.uuids(),
     restaurant_id=st.integers(min_value=1, max_value=10_000),
+    delivery_address=delivery_address_st,
     line_items=st.lists(line_item_st, min_size=1, max_size=5),
     status=st.just(KitchenTicketStatus.CANCELLED),
 )
@@ -246,7 +258,10 @@ class TestInvalidTransitionsRaiseError:
     def test_accept_raises_on_invalid_status(self, ticket: KitchenTicket) -> None:
         try:
             ticket.accept()
-            assert False, f"Expected InvalidKitchenTicketStatusTransitionError for status {ticket.status}"
+            raise AssertionError(
+                "Expected InvalidKitchenTicketStatusTransitionError "
+                f"for status {ticket.status}"
+            )
         except InvalidKitchenTicketStatusTransitionError as exc:
             assert exc.target == KitchenTicketStatus.ACCEPTED
             assert exc.current == ticket.status
@@ -256,7 +271,10 @@ class TestInvalidTransitionsRaiseError:
     def test_reject_raises_on_invalid_status(self, ticket: KitchenTicket) -> None:
         try:
             ticket.reject()
-            assert False, f"Expected InvalidKitchenTicketStatusTransitionError for status {ticket.status}"
+            raise AssertionError(
+                "Expected InvalidKitchenTicketStatusTransitionError "
+                f"for status {ticket.status}"
+            )
         except InvalidKitchenTicketStatusTransitionError as exc:
             assert exc.target == KitchenTicketStatus.CANCELLED
             assert exc.current == ticket.status

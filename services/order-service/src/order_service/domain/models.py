@@ -14,6 +14,9 @@ class OrderStatus(StrEnum):
     CANCELLED = "CANCELLED"
     PREPARING = "PREPARING"
     READY = "READY"
+    DELIVERY_ASSIGNED = "DELIVERY_ASSIGNED"
+    OUT_FOR_DELIVERY = "OUT_FOR_DELIVERY"
+    DELIVERED = "DELIVERED"
 
 
 class InvalidOrderStatusTransitionError(Exception):
@@ -77,6 +80,36 @@ class Order:
         if self.status != OrderStatus.PREPARING:
             raise InvalidOrderStatusTransitionError(self.status, OrderStatus.READY)
         self.status = OrderStatus.READY
+
+    def mark_delivery_assigned(self) -> None:
+        if self.status == OrderStatus.DELIVERY_ASSIGNED:
+            return
+        if self.status != OrderStatus.READY:
+            raise InvalidOrderStatusTransitionError(
+                self.status,
+                OrderStatus.DELIVERY_ASSIGNED,
+            )
+        self.status = OrderStatus.DELIVERY_ASSIGNED
+
+    def mark_out_for_delivery(self) -> None:
+        if self.status == OrderStatus.OUT_FOR_DELIVERY:
+            return
+        if self.status != OrderStatus.DELIVERY_ASSIGNED:
+            raise InvalidOrderStatusTransitionError(
+                self.status,
+                OrderStatus.OUT_FOR_DELIVERY,
+            )
+        self.status = OrderStatus.OUT_FOR_DELIVERY
+
+    def mark_delivered(self) -> None:
+        if self.status == OrderStatus.DELIVERED:
+            return
+        if self.status != OrderStatus.OUT_FOR_DELIVERY:
+            raise InvalidOrderStatusTransitionError(
+                self.status,
+                OrderStatus.DELIVERED,
+            )
+        self.status = OrderStatus.DELIVERED
 
     def begin_preparing(self) -> None:
         if self.status == OrderStatus.PREPARING:

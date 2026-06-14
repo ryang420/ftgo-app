@@ -10,6 +10,7 @@ def to_domain_ticket(record: KitchenTicketRecord) -> KitchenTicket:
         id=record.id,
         order_id=record.order_id,
         restaurant_id=record.restaurant_id,
+        delivery_address=record.delivery_address,
         status=record.status,
         line_items=[
             KitchenTicketLineItem(
@@ -28,6 +29,7 @@ def to_ticket_record(ticket: KitchenTicket) -> KitchenTicketRecord:
         id=ticket.id,
         order_id=ticket.order_id,
         restaurant_id=ticket.restaurant_id,
+        delivery_address=ticket.delivery_address,
         status=ticket.status,
     )
     record.line_items = [

@@ -33,6 +33,7 @@ def build_command(envelope: dict[str, Any]) -> CreateKitchenTicketCommand:
     return CreateKitchenTicketCommand(
         order_id=UUID(payload["order_id"]),
         restaurant_id=int(payload["restaurant_id"]),
+        delivery_address=payload["delivery_address"],
         line_items=[
             CreateKitchenTicketLineItemCommand(
                 menu_item_id=int(item["menu_item_id"]),

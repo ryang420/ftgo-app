@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { getOrder } from "../lib/api.js";
 
-const TERMINAL_STATUSES = new Set(["PREPARING", "CANCELLED", "READY"]);
+const TERMINAL_STATUSES = new Set(["DELIVERED", "CANCELLED", "REJECTED"]);
 const POLL_INTERVAL_MS = 5000;
 
 export default function useOrderPolling(orderId) {

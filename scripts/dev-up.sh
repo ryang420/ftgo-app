@@ -132,6 +132,7 @@ ensure_database "consumer_db"
 ensure_database "restaurant_db"
 ensure_database "order_db"
 ensure_database "kitchen_db"
+ensure_database "delivery_db"
 
 echo "Running database migrations..."
 make migrate
@@ -140,11 +141,14 @@ start_service "consumer-service" "consumer_service.main:app" "8001"
 start_service "restaurant-service" "restaurant_service.main:app" "8002"
 start_service "order-service" "order_service.main:app" "8003"
 start_service "kitchen-service" "kitchen_service.main:app" "8004"
+start_service "delivery-service" "delivery_service.main:app" "8005"
 start_service "api-gateway" "api_gateway.main:app" "8000"
 start_worker "order-outbox-relay" uv run --package order-service python services/order-service/src/order_service/relay.py
 start_worker "kitchen-outbox-relay" uv run --package kitchen-service python services/kitchen-service/src/kitchen_service/relay.py
+start_worker "delivery-outbox-relay" uv run --package delivery-service python services/delivery-service/src/delivery_service/relay.py
 start_worker "kitchen-order-created-consumer" uv run --package kitchen-service python services/kitchen-service/src/kitchen_service/consumer.py
 start_worker "order-kitchen-ticket-created-consumer" uv run --package order-service python services/order-service/src/order_service/consumer.py
+start_worker "delivery-kitchen-ticket-ready-consumer" uv run --package delivery-service python services/delivery-service/src/delivery_service/consumer.py
 
 trap - ERR
 
@@ -154,5 +158,6 @@ echo "API gateway: http://localhost:8000"
 echo "Order outbox relay: running in background"
 echo "Kitchen outbox relay: running in background"
 echo "Kitchen service: http://localhost:8004"
+echo "Delivery service: http://localhost:8005"
 echo "Logs: $LOG_DIR"
 echo "Stop everything with: make dev-down"

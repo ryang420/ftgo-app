@@ -149,7 +149,21 @@ def get_order_when_approved(client: httpx.Client, order_id: str) -> dict | None:
     return order if order["status"] == "APPROVED" else None
 
 
-def test_place_order_creates_kitchen_ticket_and_approves_order(
+def get_order_when_status(client: httpx.Client, order_id: str, status: str) -> dict | None:
+    response = assert_success(client.get(f"/orders/{order_id}"))
+    order = response.json()
+    return order if order["status"] == status else None
+
+
+def find_delivery_for_order(client: httpx.Client, order_id: str) -> dict | None:
+    response = assert_success(client.get("/deliveries"))
+    for delivery in response.json():
+        if delivery["order_id"] == order_id:
+            return delivery
+    return None
+
+
+def test_place_order_reaches_delivered_status(
     gateway_client: httpx.Client,
 ) -> None:
     run_id = uuid4().hex
@@ -191,3 +205,67 @@ def test_place_order_creates_kitchen_ticket_and_approves_order(
 
     assert approved_order["id"] == order["id"]
     assert approved_order["status"] == "APPROVED"
+
+    accepted_ticket = assert_success(
+        gateway_client.post(f"/kitchen/tickets/{ticket['id']}/accept")
+    ).json()
+    assert accepted_ticket["status"] == "ACCEPTED"
+
+    preparing_ticket = assert_success(
+        gateway_client.post(f"/kitchen/tickets/{ticket['id']}/prepare")
+    ).json()
+    assert preparing_ticket["status"] == "PREPARING"
+
+    ready_ticket = assert_success(
+        gateway_client.post(f"/kitchen/tickets/{ticket['id']}/ready-for-pickup")
+    ).json()
+    assert ready_ticket["status"] == "READY_FOR_PICKUP"
+
+    ready_order = wait_until(
+        f"order {order['id']} to transition to READY",
+        lambda: get_order_when_status(gateway_client, order["id"], "READY"),
+    )
+    assert ready_order["status"] == "READY"
+
+    delivery = wait_until(
+        f"delivery creation for order {order['id']}",
+        lambda: find_delivery_for_order(gateway_client, order["id"]),
+    )
+    assert delivery["status"] == "PENDING_ASSIGNMENT"
+    assert delivery["delivery_address"] == "123 Main St, Shanghai, 200000"
+
+    assigned_delivery = assert_success(
+        gateway_client.post(
+            f"/deliveries/{delivery['id']}/assign",
+            json={"courier_id": "courier-001"},
+        )
+    ).json()
+    assert assigned_delivery["status"] == "ASSIGNED"
+
+    assigned_order = wait_until(
+        f"order {order['id']} to transition to DELIVERY_ASSIGNED",
+        lambda: get_order_when_status(gateway_client, order["id"], "DELIVERY_ASSIGNED"),
+    )
+    assert assigned_order["status"] == "DELIVERY_ASSIGNED"
+
+    picked_up_delivery = assert_success(
+        gateway_client.post(f"/deliveries/{delivery['id']}/pickup")
+    ).json()
+    assert picked_up_delivery["status"] == "PICKED_UP"
+
+    out_for_delivery_order = wait_until(
+        f"order {order['id']} to transition to OUT_FOR_DELIVERY",
+        lambda: get_order_when_status(gateway_client, order["id"], "OUT_FOR_DELIVERY"),
+    )
+    assert out_for_delivery_order["status"] == "OUT_FOR_DELIVERY"
+
+    delivered_delivery = assert_success(
+        gateway_client.post(f"/deliveries/{delivery['id']}/deliver")
+    ).json()
+    assert delivered_delivery["status"] == "DELIVERED"
+
+    delivered_order = wait_until(
+        f"order {order['id']} to transition to DELIVERED",
+        lambda: get_order_when_status(gateway_client, order["id"], "DELIVERED"),
+    )
+    assert delivered_order["status"] == "DELIVERED"

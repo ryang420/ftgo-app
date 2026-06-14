@@ -179,7 +179,117 @@ Envelope:
     "ticket_id": "<ticket-id>",
     "order_id": "<order-id>",
     "restaurant_id": 1,
+    "delivery_address": "123 Main St, Shanghai, 200000",
     "status": "READY_FOR_PICKUP"
   },
   "occurred_at": "2026-06-07T12:00:00+00:00"
 }
+```
+
+## DeliveryCreated
+
+Published by `delivery-service` when a ready kitchen ticket creates a delivery.
+
+- Exchange: `ftgo.events`
+- Routing key: `ftgo.Delivery.DeliveryCreated`
+- Delivery: at least once
+- Idempotency key for consumers: `message_id` or `payload.order_id`
+
+Envelope:
+
+```json
+{
+  "event_type": "DeliveryCreated",
+  "aggregate_type": "Delivery",
+  "aggregate_id": "<delivery-id>",
+  "payload": {
+    "delivery_id": "<delivery-id>",
+    "order_id": "<order-id>",
+    "restaurant_id": 1,
+    "delivery_address": "123 Main St, Shanghai, 200000",
+    "status": "PENDING_ASSIGNMENT"
+  },
+  "occurred_at": "2026-06-13T12:00:00+00:00"
+}
+```
+
+## DeliveryAssigned
+
+Published by `delivery-service` when a courier is assigned.
+
+- Exchange: `ftgo.events`
+- Routing key: `ftgo.Delivery.DeliveryAssigned`
+- Delivery: at least once
+- Idempotency key for consumers: `message_id` or `payload.delivery_id`
+- Order-side idempotency key: `payload.order_id`
+
+Envelope:
+
+```json
+{
+  "event_type": "DeliveryAssigned",
+  "aggregate_type": "Delivery",
+  "aggregate_id": "<delivery-id>",
+  "payload": {
+    "delivery_id": "<delivery-id>",
+    "order_id": "<order-id>",
+    "courier_id": "courier-001",
+    "status": "ASSIGNED"
+  },
+  "occurred_at": "2026-06-13T12:05:00+00:00"
+}
+```
+
+## DeliveryPickedUp
+
+Published by `delivery-service` when the courier picks up the delivery.
+
+- Exchange: `ftgo.events`
+- Routing key: `ftgo.Delivery.DeliveryPickedUp`
+- Delivery: at least once
+- Idempotency key for consumers: `message_id` or `payload.delivery_id`
+- Order-side idempotency key: `payload.order_id`
+
+Envelope:
+
+```json
+{
+  "event_type": "DeliveryPickedUp",
+  "aggregate_type": "Delivery",
+  "aggregate_id": "<delivery-id>",
+  "payload": {
+    "delivery_id": "<delivery-id>",
+    "order_id": "<order-id>",
+    "courier_id": "courier-001",
+    "status": "PICKED_UP"
+  },
+  "occurred_at": "2026-06-13T12:20:00+00:00"
+}
+```
+
+## DeliveryDelivered
+
+Published by `delivery-service` when the courier completes the delivery.
+
+- Exchange: `ftgo.events`
+- Routing key: `ftgo.Delivery.DeliveryDelivered`
+- Delivery: at least once
+- Idempotency key for consumers: `message_id` or `payload.delivery_id`
+- Order-side idempotency key: `payload.order_id`
+
+Envelope:
+
+```json
+{
+  "event_type": "DeliveryDelivered",
+  "aggregate_type": "Delivery",
+  "aggregate_id": "<delivery-id>",
+  "payload": {
+    "delivery_id": "<delivery-id>",
+    "order_id": "<order-id>",
+    "courier_id": "courier-001",
+    "status": "DELIVERED"
+  },
+  "occurred_at": "2026-06-13T12:35:00+00:00"
+}
+```

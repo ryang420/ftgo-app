@@ -1,12 +1,11 @@
 from uuid import UUID, uuid4
 
 import pytest
-
 from kitchen_service.application.commands import (
     CreateKitchenTicketCommand,
     CreateKitchenTicketLineItemCommand,
 )
-from kitchen_service.application.outbox import OutboxEvent
+from kitchen_service.application.outbox import OutboxEvent, kitchen_ticket_ready_for_pickup_event
 from kitchen_service.application.tickets import KitchenTicketApplicationService
 from kitchen_service.domain.models import (
     InvalidKitchenTicketStatusTransitionError,
@@ -61,6 +60,7 @@ def build_command(order_id: UUID) -> CreateKitchenTicketCommand:
     return CreateKitchenTicketCommand(
         order_id=order_id,
         restaurant_id=10,
+        delivery_address="123 Main St",
         line_items=[
             CreateKitchenTicketLineItemCommand(
                 menu_item_id=20,
@@ -306,3 +306,25 @@ def test_reject_event_omits_rejection_reason_key() -> None:
     service.reject_ticket(ticket.id, rejection_reason=None)
 
     assert "rejection_reason" not in outbox.events[0].payload
+
+
+def test_ready_for_pickup_event_includes_delivery_address() -> None:
+    ticket = KitchenTicket.create_pending(
+        order_id=uuid4(),
+        restaurant_id=10,
+        delivery_address="123 Main St",
+        line_items=[
+            KitchenTicketLineItem(
+                menu_item_id=20,
+                name="Beef Noodles",
+                quantity=2,
+            )
+        ],
+    )
+    ticket.accept()
+    ticket.start_preparing()
+    ticket.mark_ready_for_pickup()
+
+    event = kitchen_ticket_ready_for_pickup_event(ticket)
+
+    assert event.payload["delivery_address"] == "123 Main St"

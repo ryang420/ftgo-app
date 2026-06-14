@@ -13,6 +13,7 @@ class CreateKitchenTicketLineItemCommand:
 class CreateKitchenTicketCommand:
     order_id: UUID
     restaurant_id: int
+    delivery_address: str
     line_items: list[CreateKitchenTicketLineItemCommand]
 
 

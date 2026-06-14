@@ -179,3 +179,62 @@ export async function readyForPickupKitchenTicket(ticketId) {
   }
   return response.json();
 }
+
+// ── Deliveries ────────────────────────────────────────────────────────────
+
+export async function getDeliveries({ signal } = {}) {
+  const response = await fetch("/deliveries", {
+    headers: DEFAULT_HEADERS,
+    signal,
+  });
+  if (!response.ok) {
+    throw new Error(`Failed to load deliveries: ${response.status}`);
+  }
+  return response.json();
+}
+
+export async function assignDelivery(deliveryId, courierId) {
+  const response = await fetch(`/deliveries/${deliveryId}/assign`, {
+    method: "POST",
+    headers: JSON_HEADERS,
+    body: JSON.stringify({ courier_id: courierId }),
+  });
+  if (!response.ok) {
+    const body = await response.json().catch(() => ({}));
+    const err = new Error(`Failed to assign delivery: ${response.status}`);
+    err.status = response.status;
+    err.body = body;
+    throw err;
+  }
+  return response.json();
+}
+
+export async function pickupDelivery(deliveryId) {
+  const response = await fetch(`/deliveries/${deliveryId}/pickup`, {
+    method: "POST",
+    headers: JSON_HEADERS,
+  });
+  if (!response.ok) {
+    const body = await response.json().catch(() => ({}));
+    const err = new Error(`Failed to pick up delivery: ${response.status}`);
+    err.status = response.status;
+    err.body = body;
+    throw err;
+  }
+  return response.json();
+}
+
+export async function deliverDelivery(deliveryId) {
+  const response = await fetch(`/deliveries/${deliveryId}/deliver`, {
+    method: "POST",
+    headers: JSON_HEADERS,
+  });
+  if (!response.ok) {
+    const body = await response.json().catch(() => ({}));
+    const err = new Error(`Failed to deliver delivery: ${response.status}`);
+    err.status = response.status;
+    err.body = body;
+    throw err;
+  }
+  return response.json();
+}

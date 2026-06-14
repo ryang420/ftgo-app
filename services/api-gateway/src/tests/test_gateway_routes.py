@@ -56,3 +56,14 @@ def test_routes_to_kitchen_service(stub_proxy: StubProxy) -> None:
     assert response.status_code == 200
     assert response.json() == {"service": "kitchen", "path": "tickets"}
     assert stub_proxy.calls == [("kitchen", "tickets", "GET")]
+
+
+def test_routes_to_delivery_service(stub_proxy: StubProxy) -> None:
+    response = TestClient(app).post(
+        "/deliveries/abc/assign",
+        json={"courier_id": "courier-001"},
+    )
+
+    assert response.status_code == 200
+    assert response.json() == {"service": "deliveries", "path": "abc/assign"}
+    assert stub_proxy.calls == [("deliveries", "abc/assign", "POST")]

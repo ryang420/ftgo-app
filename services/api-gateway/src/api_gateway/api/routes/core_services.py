@@ -46,3 +46,13 @@ async def proxy_kitchen(
     path: str = "",
 ) -> Response:
     return await proxy.forward(request, service_key="kitchen", path=path)
+
+
+@router.api_route("/deliveries", methods=["GET", "POST", "PUT", "PATCH", "DELETE"])
+@router.api_route("/deliveries/{path:path}", methods=["GET", "POST", "PUT", "PATCH", "DELETE"])
+async def proxy_deliveries(
+    request: Request,
+    proxy: Annotated[UpstreamProxy, Depends(get_upstream_proxy)],
+    path: str = "",
+) -> Response:
+    return await proxy.forward(request, service_key="deliveries", path=path)

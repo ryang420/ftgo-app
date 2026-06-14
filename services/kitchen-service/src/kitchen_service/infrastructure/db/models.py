@@ -25,6 +25,7 @@ class KitchenTicketRecord(Base):
         index=True,
     )
     restaurant_id: Mapped[int] = mapped_column(nullable=False, index=True)
+    delivery_address: Mapped[str] = mapped_column(String(500), nullable=False)
     status: Mapped[KitchenTicketStatus] = mapped_column(
         Enum(KitchenTicketStatus, name="kitchen_ticket_status"),
         default=KitchenTicketStatus.CREATE_PENDING,

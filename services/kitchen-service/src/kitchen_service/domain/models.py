@@ -32,6 +32,7 @@ class InvalidKitchenTicketStatusTransitionError(Exception):
 class KitchenTicket:
     order_id: uuid.UUID
     restaurant_id: int
+    delivery_address: str
     line_items: list[KitchenTicketLineItem]
     status: KitchenTicketStatus = KitchenTicketStatus.CREATE_PENDING
     id: uuid.UUID = field(default_factory=uuid.uuid4)
@@ -39,6 +40,8 @@ class KitchenTicket:
     def __post_init__(self) -> None:
         if not self.line_items:
             raise ValueError("A kitchen ticket must contain at least one line item")
+        if not self.delivery_address or not self.delivery_address.strip():
+            raise ValueError("Delivery address is required")
 
     def accept(self) -> None:
         if self.status == KitchenTicketStatus.ACCEPTED:
@@ -82,6 +85,12 @@ class KitchenTicket:
         *,
         order_id: uuid.UUID,
         restaurant_id: int,
+        delivery_address: str,
         line_items: list[KitchenTicketLineItem],
     ) -> KitchenTicket:
-        return cls(order_id=order_id, restaurant_id=restaurant_id, line_items=line_items)
+        return cls(
+            order_id=order_id,
+            restaurant_id=restaurant_id,
+            delivery_address=delivery_address,
+            line_items=line_items,
+        )

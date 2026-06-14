@@ -7,8 +7,8 @@ Properties 7-8
 from decimal import Decimal
 from uuid import uuid4
 
-from hypothesis import given, settings, strategies as st
-
+from hypothesis import given, settings
+from hypothesis import strategies as st
 from order_service.domain.models import (
     InvalidOrderStatusTransitionError,
     Order,
@@ -109,7 +109,7 @@ class TestBeginPreparingStateMachine:
     def test_begin_preparing_raises_on_invalid_status(self, order: Order) -> None:
         try:
             order.begin_preparing()
-            assert False, (
+            raise AssertionError(
                 f"Expected InvalidOrderStatusTransitionError for status {order.status}"
             )
         except InvalidOrderStatusTransitionError as exc:
@@ -143,9 +143,67 @@ class TestCancelAcceptsPreparing:
     def test_cancel_raises_on_rejected(self, order: Order) -> None:
         try:
             order.cancel()
-            assert False, (
+            raise AssertionError(
                 f"Expected InvalidOrderStatusTransitionError for status {order.status}"
             )
         except InvalidOrderStatusTransitionError as exc:
             assert exc.target == OrderStatus.CANCELLED
             assert exc.current == OrderStatus.REJECTED
+
+
+def _order_with_status(status: OrderStatus) -> Order:
+    return Order(
+        consumer_id=uuid4(),
+        restaurant_id=10,
+        currency="USD",
+        delivery_address="123 Main St",
+        line_items=[
+            OrderLineItem(
+                menu_item_id=20,
+                name="Beef Noodles",
+                quantity=1,
+                unit_price=Decimal("12.00"),
+            )
+        ],
+        status=status,
+    )
+
+
+def test_delivery_status_happy_path_reaches_delivered() -> None:
+    order = _order_with_status(OrderStatus.READY)
+
+    order.mark_delivery_assigned()
+    assert order.status == OrderStatus.DELIVERY_ASSIGNED
+
+    order.mark_out_for_delivery()
+    assert order.status == OrderStatus.OUT_FOR_DELIVERY
+
+    order.mark_delivered()
+    assert order.status == OrderStatus.DELIVERED
+
+
+def test_delivery_status_transitions_are_idempotent_for_target_status() -> None:
+    order = _order_with_status(OrderStatus.READY)
+
+    order.mark_delivery_assigned()
+    order.mark_delivery_assigned()
+    assert order.status == OrderStatus.DELIVERY_ASSIGNED
+
+    order.mark_out_for_delivery()
+    order.mark_out_for_delivery()
+    assert order.status == OrderStatus.OUT_FOR_DELIVERY
+
+    order.mark_delivered()
+    order.mark_delivered()
+    assert order.status == OrderStatus.DELIVERED
+
+
+def test_delivery_status_transition_rejects_out_of_order_event() -> None:
+    order = _order_with_status(OrderStatus.READY)
+
+    try:
+        order.mark_out_for_delivery()
+        raise AssertionError("Expected InvalidOrderStatusTransitionError")
+    except InvalidOrderStatusTransitionError as exc:
+        assert exc.current == OrderStatus.READY
+        assert exc.target == OrderStatus.OUT_FOR_DELIVERY
