@@ -59,6 +59,6 @@
 - [x] 7.2 Run `uv run pytest services/delivery-service/src/tests/ -v`.
 - [x] 7.3 Run `uv run pytest services/order-service/src/tests/ -v`.
 - [x] 7.4 Run `uv run pytest services/api-gateway/src/tests/ -v`.
-- [ ] 7.5 Run `uv run pytest tests/e2e/test_place_order_flow.py -v`.
+- [x] 7.5 Run `uv run pytest tests/e2e/test_place_order_flow.py -v`.
 - [x] 7.6 Run frontend build verification with `cd frontend && npm run build`.
-- [ ] 7.7 Run `uv run ruff check`.
+- [x] 7.7 Run `uv run ruff check`.
