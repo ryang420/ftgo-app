@@ -5,7 +5,10 @@ from sqlalchemy.orm import Session
 
 from restaurant_service.application.restaurants import RestaurantApplicationService
 from restaurant_service.infrastructure.db import get_db_session
-from restaurant_service.infrastructure.db.repositories import SqlAlchemyMenuItemRepository, SqlAlchemyRestaurantRepository
+from restaurant_service.infrastructure.db.repositories import (
+    SqlAlchemyMenuItemRepository,
+    SqlAlchemyRestaurantRepository,
+)
 
 
 def get_restaurant_service(

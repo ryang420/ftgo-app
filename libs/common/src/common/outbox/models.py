@@ -1,10 +1,11 @@
 import uuid
 from datetime import datetime
 
-from common.db import Base
 from sqlalchemy import JSON, DateTime, String, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
+
+from common.db import Base
 
 
 class OutboxMessageRecord(Base):

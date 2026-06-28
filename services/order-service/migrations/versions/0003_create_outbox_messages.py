@@ -5,10 +5,9 @@ Revises: 0002_order_int_refs
 Create Date: 2026-05-17 00:00:00
 """
 
-from alembic import op
 import sqlalchemy as sa
+from alembic import op
 from sqlalchemy.dialects import postgresql
-
 
 revision = "0003_order_outbox"
 down_revision = "0002_order_int_refs"

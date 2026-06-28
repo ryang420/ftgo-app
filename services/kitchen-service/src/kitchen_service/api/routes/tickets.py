@@ -47,8 +47,9 @@ def accept_ticket(
 def reject_ticket(
     ticket_id: UUID,
     service: Annotated[KitchenTicketApplicationService, Depends(get_ticket_service)],
-    body: RejectTicketRequest = RejectTicketRequest(),
+    body: RejectTicketRequest | None = None,
 ) -> KitchenTicketRead:
+    body = body or RejectTicketRequest()
     try:
         ticket = service.reject_ticket(ticket_id, rejection_reason=body.rejection_reason)
     except InvalidKitchenTicketStatusTransitionError as exc:

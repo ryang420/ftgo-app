@@ -5,9 +5,8 @@ Revises: 0001_order
 Create Date: 2026-05-17 00:00:00
 """
 
-from alembic import op
 import sqlalchemy as sa
-
+from alembic import op
 
 revision = "0002_order_int_refs"
 down_revision = "0001_order"

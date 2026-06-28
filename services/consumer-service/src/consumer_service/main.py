@@ -1,6 +1,5 @@
-from fastapi import FastAPI
-
 from common.api import create_base_app
+from fastapi import FastAPI
 
 from consumer_service.api.routes import consumers_router
 from consumer_service.config import get_settings

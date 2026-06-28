@@ -1,6 +1,6 @@
 """Application service helpers for consumer workflows."""
 
-from consumer_service.application.commands import CreateConsumerAddressCommand, CreateConsumerCommand
+from consumer_service.application.commands import CreateConsumerCommand
 from consumer_service.domain.models import ConsumerAddress, ConsumerProfile
 from consumer_service.domain.repositories import ConsumerRepository
 

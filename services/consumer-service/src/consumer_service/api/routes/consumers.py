@@ -6,9 +6,17 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.exc import IntegrityError
 
 from consumer_service.api.dependencies import get_consumer_service
-from consumer_service.application.commands import CreateConsumerAddressCommand, CreateConsumerCommand
+from consumer_service.application.commands import (
+    CreateConsumerAddressCommand,
+    CreateConsumerCommand,
+)
 from consumer_service.application.consumer_service import ConsumerApplicationService
-from consumer_service.schemas.consumer import ConsumerCreate, ConsumerListResponse, ConsumerRead, to_consumer_read
+from consumer_service.schemas.consumer import (
+    ConsumerCreate,
+    ConsumerListResponse,
+    ConsumerRead,
+    to_consumer_read,
+)
 
 router = APIRouter(prefix="/consumers", tags=["consumers"])
 
@@ -17,7 +25,9 @@ router = APIRouter(prefix="/consumers", tags=["consumers"])
 def list_consumer_profiles(
     service: Annotated[ConsumerApplicationService, Depends(get_consumer_service)],
 ) -> ConsumerListResponse:
-    return ConsumerListResponse(items=[to_consumer_read(consumer) for consumer in service.list_consumers()])
+    return ConsumerListResponse(
+        items=[to_consumer_read(consumer) for consumer in service.list_consumers()]
+    )
 
 
 @router.post("", response_model=ConsumerRead, status_code=status.HTTP_201_CREATED)

@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from typing import List
 from uuid import uuid4
 
 from common.db import TimestampedModel
@@ -16,7 +15,7 @@ class ConsumerProfileRecord(TimestampedModel):
     first_name: Mapped[str] = mapped_column(String(100))
     last_name: Mapped[str] = mapped_column(String(100))
     phone_number: Mapped[str | None] = mapped_column(String(32), nullable=True)
-    addresses: Mapped[List["ConsumerAddressRecord"]] = relationship(
+    addresses: Mapped[list[ConsumerAddressRecord]] = relationship(
         back_populates="consumer",
         cascade="all, delete-orphan",
     )

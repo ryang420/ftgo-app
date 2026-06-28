@@ -3,9 +3,9 @@ from __future__ import annotations
 from logging.config import fileConfig
 
 from alembic import context
+from common.db import Base
 from order_service.config import OrderServiceSettings
 from order_service.infrastructure.db.models import OrderLineItemRecord, OrderRecord  # noqa: F401
-from common.db import Base
 from sqlalchemy import engine_from_config, pool
 
 config = context.config
